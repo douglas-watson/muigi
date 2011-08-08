@@ -29,12 +29,20 @@ class ControllerService(rpyc.Service):
         # Close serial port
         self.daq.close()
 
+    def reset_a(self):
+        """ Reset communication to valve A """
+        self.daq.write("!A" + chr(0))
+
+    def reset_b(self):
+        """ Reset communication to valve B """
+        self.daq.write("!B" + chr(0))
+
     def exposed_reset(self):
         """ Resets state of all valves on ports A and B, and enables
         communication """
 
-        self.daq.write("!A" + chr(0))
-        self.daq.write("!B" + chr(0))
+        self.reset_a()
+        self.reset_b()
 
     def exposed_set_a_state(self, state):
         """ Sets state of valves on port A.
@@ -44,7 +52,8 @@ class ControllerService(rpyc.Service):
         state - 8 char long string of 1's and 0's. Represents the state of the
         valves (1 for open, 0 for closed).
         """
-        self.daq.write("A" + chr(int(state, 2)))
+        self.reset_a()
+        self.daq.write("A" + chr(int(state.strip(), 2)))
         return ("Set state of valves on port A: %s" % state)
 
     def exposed_set_b_state(self, state):
@@ -55,7 +64,8 @@ class ControllerService(rpyc.Service):
         state - 8 char long string of 1's and 0's. Represents the state of the
         valves (1 for open, 0 for closed).
         """
-        self.daq.write("B" + chr(int(state, 2)))
+        self.reset_b()
+        self.daq.write("B" + chr(int(state.strip(), 2)))
         return ("Set state of valves on port B: %s" % state)
 
 if __name__ == '__main__':

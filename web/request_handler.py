@@ -26,10 +26,14 @@ app = Flask(__name__)
 # TODO make secret key more secret
 app.secret_key = '''\xf9\xae!\xca\xae\x1a\xd6k\xf3\xd1\xc3\xb18~\xe2V"\x89=`q\xde\x91\xe4'''
 
+from random import choice
+random_state = lambda: ''.join([choice(['0', '1']) for i in range(8)])
+
 class ControlForm(Form):
-    a_state = TextField('State of port A', 
+
+    a_state = TextField('State of port A', default=random_state(),
             validators=[v.Required(), v.Length(min=8, max=8)])
-    b_state = TextField('State of port B',
+    b_state = TextField('State of port B', default=random_state(),
             validators=[v.Required(), v.Length(min=8, max=8)])
 
 @app.route('/', methods=['GET', 'POST'])
@@ -42,4 +46,4 @@ def index():
     return render_template("index.html", form=form)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0')

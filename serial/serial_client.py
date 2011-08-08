@@ -25,4 +25,6 @@ def set_states(a, b):
     return return_value_a, return_value_b
 
 if __name__ == '__main__':
-    set_states('11111111', '11111111')
+    from random import choice
+    make_string = lambda: ''.join([choice(['0', '1']) for i in range(8)])
+    set_states(make_string(), make_string())
