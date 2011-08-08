@@ -1,0 +1,7 @@
+% Microfluidics Web Controller
+% August 2011
+% Douglas Watson
+
+The goal of this project is to control a microfluidics chip from a web interface. A PC connected to the control hardware runs a webserver, so that clients can connect from anywhere and control the chip from their standard web browser.
+
+
