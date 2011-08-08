@@ -1,0 +1,70 @@
+/* -----------------------
+ *        LAYOUT
+ *  ---------------------- */
+body {
+    text-align: center;
+    font-family: sans;
+}
+
+#main {
+    display: block;
+    /* text-align: left; */
+    margin: 0px auto;
+    width: 800px;
+    background: #E8E8E8;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+}
+
+#header {
+    height: 3em;
+    padding: 30px;
+    background-color: #1F1F1F;
+    -moz-border-radius-topleft: 10px;
+    -moz-border-radius-topright: 10px;
+    -webkit-border-top-left-radius: 10px;
+    -webkit-border-top-right-radius: 10px;
+    vertical-align: bottom;
+    text-align: center;
+}
+
+h1 {
+    display: inline;
+    color: white;
+    height: 100%;
+    margin: auto;
+    padding-top: 2em;
+}
+
+div #videoplayer {
+    display: inline;
+    float: left;
+    text-align: center;
+    width: 400px;
+    margin: 10px auto;
+}
+
+#controls {
+    display: block;
+    float: right;
+    text-align: center;
+    width: 300px;
+    margin: 10px auto;
+}
+
+#response{
+    display: inline;
+    height: 5em;
+}
+
+/* -----------------------
+ *        FONTS
+ *  ---------------------- */
+
+.errors {
+    color: red;
+}
+
+#response p {
+    color: gray;
+}

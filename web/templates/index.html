@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Microfluidics remote</title>
+<link rel="stylesheet" type="text/css" href="/static/styling.css" />
+
+<!-- AJAX stuff -->
+<script type="text/javascript" src="/static/jquery.js"></script>
+<script type="text/javascript" src="/static/ajax.js"></script>
+
+</head>
+</head>
+<body>
+
+    <div id="main">
+        <div id="header">
+            <h1 id="heading">Microfluidics Remote</h1>
+        </div>
+
+        <!---
+        <div id="videoplayer">
+            <object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" width="480"
+            height="296" id="utv399646"><param name="flashvars"
+            value="autoplay=false&amp;brand=embed&amp;cid=8774084&amp;v3=1"/><param
+            name="allowfullscreen" value="true"/><param name="allowscriptaccess"
+            value="always"/><param name="movie"
+            value="http://www.ustream.tv/flash/viewer.swf"/><embed
+            flashvars="autoplay=false&amp;brand=embed&amp;cid=8774084&amp;v3=1"
+            width="400" height="247" allowfullscreen="true" allowscriptaccess="always"
+            id="utv399646" name="utv_n_17963"
+            src="http://www.ustream.tv/flash/viewer.swf"
+            type="application/x-shockwave-flash" /></object>
+        </div>
+        -->
+
+        <!-- <div id="controls"> -->
+            <span id="response">
+                <!-- TODO: replace when form validation is in place
+                <p class="error">Invalid input</p>
+                -->
+            {% for message in get_flashed_messages() %}
+                <p>{{ message }}</p>
+            {% endfor %}
+            </span>
+
+            <p>Please enter the state string:</p>
+            {% from "_formhelpers.html" import render_field %}
+            <form method="post" action=".">
+                <dl>
+                    {{ render_field(form.a_state) }}
+                    {{ render_field(form.b_state) }}
+                </dl>
+                <p><input type="submit" value="Submit"></p>
+            </form>
+        <!-- </div> -->
+
+    </div>
+
+</body>
+</html>
