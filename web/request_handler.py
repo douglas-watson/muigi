@@ -17,7 +17,7 @@
 from flask import Flask, render_template, request, flash, jsonify
 from flaskext.wtf import Form, TextField, SelectMultipleField
 from flaskext.wtf import validators as v
-from custom_widgets import select_multi_checkbox
+from custom_widgets import MultiCheckboxField
 
 import sys
 sys.path.append('../serial')
@@ -31,12 +31,10 @@ from random import choice
 random_state = lambda: ''.join([choice(['0', '1']) for i in range(8)])
 
 class ControlForm(Form):
-    a_state = SelectMultipleField('Valves on port A',
-            choices=[(i, str(i + 1)) for i in range(8)], coerce=int,
-            option_widget=select_multi_checkbox, default=[])
-    b_state = SelectMultipleField('Valves on port B',
-            choices=[(i, str(i + 1)) for i in range(8)], coerce=int,
-            option_widget=select_multi_checkbox, default=[])
+    a_state = MultiCheckboxField('Valves on port A',
+            choices=[(i, str(i + 1)) for i in range(8)], coerce=int, default=[])
+    b_state = MultiCheckboxField('Valves on port B',
+            choices=[(i, str(i + 1)) for i in range(8)], coerce=int, default=[])
 
 
 @app.route('/', methods=['GET', 'POST'])

@@ -3,7 +3,7 @@
  *  ---------------------- */
 body {
     text-align: center;
-    font-family:  Inconsolata, sans;
+    font-family:  Helvetica, sans;
 	font-size: 12pt;
 	background: #e1f6c9 url('/static/background-plasmids.png');
 }
@@ -62,7 +62,7 @@ div #videoplayer {
 }
 
 /* -----------------------
- *        FONTS and Text
+ *     FONTS AND TEXT
  *  ---------------------- */
 
 .errors {
@@ -74,6 +74,7 @@ div #videoplayer {
     color: gray;
 }
 
+/* reduce the indent of error messages */
 ul {
 	padding-left: 0;
 }
@@ -81,3 +82,20 @@ ul {
 li {
 	margin-left: 0;
 }
+
+td {
+	text-align: center;
+}
+
+td label {
+	/* display labels above the checkboxes */
+	display: block;
+}
+
+dt {
+	/* these are the form labels, btw */
+	display: block;
+	border-bottom: 0.5px solid black;
+	background: #efefef;
+}
+

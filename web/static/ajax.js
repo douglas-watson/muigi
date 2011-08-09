@@ -1,5 +1,6 @@
 var SCRIPT_ROOT = '';
 
+// Submit form, and re-render it upon success
 $(function() {
     $("#ajaxsubmit").live('click', function() {
         $.post('/_set_states',
@@ -9,10 +10,5 @@ $(function() {
 			}),
 			'json'
 		});
-	return false;
+	// return false;
 });
-
-function whatevs() {
-		$("#ajaxsubmit").html("Hello World");
-};
-
