@@ -42,18 +42,30 @@ def index():
         ret_a, ret_b = set_states(form.a_state.data, form.b_state.data)
         flash(ret_a)
         flash(ret_b)
-    return render_template("index.html", form=form)
+    html_form = render_template("_control_form.html", form=form)
+    return render_template("index.html", html_form=html_form)
 
 @app.route('/_set_states', methods=['POST'])
 def set_states():
     """ AJAX-specific function to set the states """
+    form = ControlForm(request.form, csrf_enabled=False)
     a_state = request.form['a_state']
     b_state = request.form['b_state']
     # TODO change this to actually call the actuation code and return more
     # useful feedback.
-    app.logger.debug('A & B states set to: %s %s', a_state, b_state)
-    return jsonify(feedback="A set to %s and B set to %s" % (a_state,
-        b_state), new_a=random_state(), new_b=random_state())
+    if form.validate():
+        app.logger.debug('A & B states set to: %s %s', a_state, b_state)
+        flash("A set to %s and B set to %s" % (a_state, b_state))
+        # Pick new random states, for demonstrations
+        form.a_state.data = random_state()
+        form.b_state.data = random_state()
+    else:
+        app.logger.debug('Erroneous request for A & B: %s %s', a_state,
+                b_state)
+        flash("Invalid input")
+    html_form = render_template("_control_form.html", form=form)
+    return jsonify(html_form=html_form, new_a=random_state(), 
+            new_b=random_state())
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')

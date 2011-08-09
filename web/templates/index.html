@@ -11,25 +11,6 @@
 <script type="text/javascript" 
 	src="{{ url_for('static', filename='ajax.js') }}"></script>
 
-<script type="text/javascript">
-var SCRIPT_ROOT = '';
-
-$(function() {
-    $("#ajaxsubmit").bind('click', function() {
-        $.post(url: $SCRIPT_ROOT + '/_set_states', 
-            data: {
-				a_state: $("input['a_state']").val();
-				b_state: $("input['b_state']").val();
-			},
-            success: function(data) {
-                jQuery('span#response').html(data.return_value).hide().fadeIn(1500);
-            },
-        });
-        return false;
-    });
-});
-</script>
-
 </head>
 <body>
 
@@ -53,25 +34,7 @@ $(function() {
         </div>
 
         <div id="controls">
-            <span id="response">
-                <!-- TODO: replace when form validation is in place
-                <p class="error">Invalid input</p>
-                -->
-            {% for message in get_flashed_messages() %}
-                <p>{{ message }}</p>
-            {% endfor %}
-            </span>
-
-            <p>Please enter the state string:</p>
-            {% from "_formhelpers.html" import render_field %}
-            <form method="post" action=".">
-                <dl>
-                    {{ render_field(form.a_state) }}
-                    {{ render_field(form.b_state) }}
-                </dl>
-                <p><input id="submit" type="submit" value="Submit"></p>
-				<p><a id="ajaxsubmit" href="#">Ajax Submit</a></p>
-            </form>
+			{{ html_form|safe }}
         </div>
 
     </div>
