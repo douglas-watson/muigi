@@ -1,0 +1,92 @@
+% Controller protocol
+% 9th August 2011
+% Douglas Watson
+
+This document describes the protocol used for to control the microcontroller, in terms of the format of strings exchanged. Python example code is also given.
+
+Microcontroller Setup
+=====================
+
+The microcontroller has four 'ports': A, B, C, and D. Each port controls eight valves, numbered 1 to 8.
+
+An valve is powered on if its state is set to 1, and powered off if its state is set to 0. Powering the valve blocks the flow, therefore:
+
+	1: valve closed
+	0: valve open
+
+Serial instructions
+===================
+
+Before starting any communication, the stream has to be 'reset', by passing a predefined token to the microcontroller: an exclamation mark (!), followed by the channel letter, followed by the null character. This must be done for each channel individually. In python code, the strings are:
+
+	"!A" + chr(0)
+	"!B" + chr(0)
+	"!C" + chr(0)
+	"!D" + chr(0)
+	
+Then, an instruction is sent as a two-character string to the microcontroller. The first character ('A', 'B', 'C', or 'D') addresses the port. The second character is (breath in) the ascii representation of the integer corresponding to a binary representation of the state of the valves on that port. Let's walk through it.
+
+The first step is to represent the state of the eight valves on one port as an eight-bit binary number, where each bit corresponds to one valve, in reverse order. For example, if all the valves are closed, the state is 11111111 (eight ones). If they are all closed, the state is 00000000 (eight zeroes). If only the first valve is open, the state is 11111110.
+
+The next step is to convert that binary number into an ascii character. In python, this can be done directly:
+
+	chr(0b11111110)
+
+Or if working with strings:
+
+	chr(int('11111110', 2))
+
+The function `int('...', 2)` converts the string into an integer, knowing the string is a base 2 representation of said integer. chr then converts it into the corresponding ascii character. For example, 01000001 in binary is 65 in decimal, which is the letter A.
+
+Finally, the two characters are concatenated, and written to serial, as illustrated later.
+
+
+Full workflow in python
+=======================
+
+From python serial communication is pretty straightforward. Overall, the steps are:
+
+* Make sure USB connection is detected and find what port to read
+* Open serial communication
+* Send commands
+ * 'reset'
+ * 'state strings'
+* Close serial communication
+
+## USB device
+
+Once USB is connected, run:
+
+	lsusb
+
+From its output, make sure a device by FTDI is connected. To find out the device file to which it is assigned, run:
+
+	dmesg | grep tty
+
+And look for something along the lines of `/dev/ttyUSB1` (usually `USB0` to `USB3`), that corresponds to your FTDI device. This is the 'device'.
+
+## Connecting from python
+
+Opening communication from python is trivial:
+
+	import serial
+
+	com = serial.Serial('/dev/ttyUSB0')
+
+The `com` object now acts as a file object, to which you can write new instructions. Of course, replace `ttyUSB0` by your device.
+
+Sending requests
+================
+
+Once serial communication is open, start by flushing the ports:
+
+	com.write("!A" + chr(0))
+	com.write("!B" + chr(0))	
+
+Then send your requests. For example, setting the state of A as 1111110:
+
+	com.write("A" + chr(0b11111110))
+
+Close the connection when you are done:
+
+	com.close()
