@@ -1,16 +1,20 @@
-jQuery(document).ready(function() {
-    jQuery("#submit").click(function() {
-        var input_string = $("#colour").val();
-        jQuery.ajax({
-            type: "POST",
-            data: {colour : input_string},
-            success: function(data) {
-                jQuery('span#response').html(data).hide().fadeIn(1500);
-            },
-        });
-        return false;
-    });
+var SCRIPT_ROOT = '';
+
+$(function() {
+    $("#ajaxsubmit").bind('click', function() {
+        $.post('/_set_states', 
+            { a_state: $('input[name="a_state"]').val(),
+			  b_state: $('input[name="b_state"]').val() 
+		    }, function(data) {
+                $('span#response').html(data.feedback).fadeIn(1000);
+				$('input[name="a_state"]').val(data.new_a);
+				$('input[name="b_state"]').val(data.new_b);
+            })
+	});
+	return false;
 });
 
-
+function whatevs() {
+		$("#ajaxsubmit").html("Hello World");
+};
 

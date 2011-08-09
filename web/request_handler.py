@@ -14,7 +14,7 @@
 #
 #################################################
 
-from flask import Flask, render_template, request, flash
+from flask import Flask, render_template, request, flash, jsonify
 from flaskext.wtf import Form, TextField
 from flaskext.wtf import validators as v
 
@@ -30,7 +30,6 @@ from random import choice
 random_state = lambda: ''.join([choice(['0', '1']) for i in range(8)])
 
 class ControlForm(Form):
-
     a_state = TextField('State of port A', default=random_state(),
             validators=[v.Required(), v.Length(min=8, max=8)])
     b_state = TextField('State of port B', default=random_state(),
@@ -44,6 +43,17 @@ def index():
         flash(ret_a)
         flash(ret_b)
     return render_template("index.html", form=form)
+
+@app.route('/_set_states', methods=['POST'])
+def set_states():
+    """ AJAX-specific function to set the states """
+    a_state = request.form['a_state']
+    b_state = request.form['b_state']
+    # TODO change this to actually call the actuation code and return more
+    # useful feedback.
+    app.logger.debug('A & B states set to: %s %s', a_state, b_state)
+    return jsonify(feedback="A set to %s and B set to %s" % (a_state,
+        b_state), new_a=random_state(), new_b=random_state())
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')

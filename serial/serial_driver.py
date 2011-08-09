@@ -52,8 +52,8 @@ class ControllerService(rpyc.Service):
         state - 8 char long string of 1's and 0's. Represents the state of the
         valves (1 for open, 0 for closed).
         """
-        self.reset_a()
-        self.daq.write("A" + chr(int(state.strip(), 2)))
+        state = state.encode('ascii').strip()
+        self.daq.write("A" + chr(int(state, 2)))
         return ("Set state of valves on port A: %s" % state)
 
     def exposed_set_b_state(self, state):
@@ -64,8 +64,8 @@ class ControllerService(rpyc.Service):
         state - 8 char long string of 1's and 0's. Represents the state of the
         valves (1 for open, 0 for closed).
         """
-        self.reset_b()
-        self.daq.write("B" + chr(int(state.strip(), 2)))
+        state = state.encode('ascii').strip()
+        self.daq.write("B" + chr(int(state, 2)))
         return ("Set state of valves on port B: %s" % state)
 
 if __name__ == '__main__':
