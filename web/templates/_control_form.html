@@ -1,0 +1,18 @@
+<span id="response">
+    <!-- TODO: replace when form validation is in place
+    <p class="error">Invalid input</p>
+    -->
+{% for message in get_flashed_messages() %}
+    <p class="flash">{{ message }}</p>
+{% endfor %}
+</span>
+
+{% from "_formhelpers.html" import render_field %}
+<form id="control_form" method="post" action=".">
+    <dl>
+        {{ render_field(form.a_state) }}
+        {{ render_field(form.b_state) }}
+    </dl>
+    <!-- <p><input id="submit" type="submit" value="Submit"></p> -->
+    <p><button type="button" id="ajaxsubmit" href="#">Ajax Submit</button></p>
+</form>
