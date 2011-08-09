@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: UTF8 -*-
 #
-#   request_handler.py - the web framework 
+#   request_handler.py - the web application
 #
 #   PURPOSE: Serve web pages, handle javascript requests, and pass them on to
 #   the serial deriver via RPC.
@@ -18,19 +18,19 @@
 #   it under the terms of the GNU General Public License as published by
 #   the Free Software Foundation, either version 3 of the License, or
 #   (at your option) any later version.
-#  
+#
 #   This program is distributed in the hope that it will be useful,
 #   but WITHOUT ANY WARRANTY; without even the implied warranty of
 #   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #   GNU General Public License for more details.
-# 
+#
 #   You should have received a copy of the GNU General Public License
 #   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #
 #################################################
 
 from flask import Flask, render_template, request, flash, jsonify
-from flaskext.wtf import Form, TextField, SelectMultipleField
+from flaskext.wtf import Form
 from flaskext.wtf import validators as v
 from custom_widgets import MultiCheckboxField
 
@@ -45,7 +45,9 @@ app.secret_key = '''\xf9\xae!\xca\xae\x1a\xd6k\xf3\xd1\xc3\xb18~\xe2V"\x89=`q\xd
 from random import choice
 random_state = lambda: ''.join([choice(['0', '1']) for i in range(8)])
 
+
 class ControlForm(Form):
+    """ Provides an interface to control the microcontroller """
     a_state = MultiCheckboxField('Valves on port A',
             choices=[(i, str(i + 1)) for i in range(8)], coerce=int, default=[])
     b_state = MultiCheckboxField('Valves on port B',
@@ -62,12 +64,13 @@ def index():
         # flash(ret_b)
 
         # convert to binary:
-        to_bin = lambda data:''.join(str(int(i in data)) for i in range(8)) 
+        to_bin = lambda data: ''.join(str(int(i in data)) for i in range(8))
         a_state = to_bin(form.a_state.data)
         b_state = to_bin(form.b_state.data)
         flash("New states: %s & %s" % (a_state, b_state))
     html_form = render_template("_control_form.html", form=form)
     return render_template("index.html", html_form=html_form)
+
 
 @app.route('/_set_states', methods=['POST'])
 def set_states():
@@ -76,7 +79,7 @@ def set_states():
     # TODO change this to actually call the actuation code and return more
     # useful feedback.
     if form.validate():
-        to_bin = lambda data:''.join(str(int(i in data)) for i in range(8)) 
+        to_bin = lambda data: ''.join(str(int(i in data)) for i in range(8))
         a_state = to_bin(form.a_state.data)
         b_state = to_bin(form.b_state.data)
         app.logger.debug('A & B states set to: %s %s', a_state, b_state)
@@ -86,8 +89,9 @@ def set_states():
                 b_state)
         flash("Invalid input")
     html_form = render_template("_control_form.html", form=form)
-    return jsonify(html_form=html_form, new_a=random_state(), 
+    return jsonify(html_form=html_form, new_a=random_state(),
             new_b=random_state())
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0')

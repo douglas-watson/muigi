@@ -4,4 +4,22 @@
 
 The goal of this project is to control a microfluidics chip from a web interface. A PC connected to the control hardware runs a webserver, so that clients can connect from anywhere and control the chip from their standard web browser.
 
+The system currently has two relatively independant components: on the hardware side, the "serial_driver" connects to a microcontroller, and exposed useful functions via an RPC (Remote Procedure Call) interface, implemented using the RPyC library. This allows any python program to send commands to the microcontroller in pure python, whether it is running on the local computer or on a remote box.
+
+Since any kind of python application can use the RPC, different interfaces can be coded in the future, without going through the hassle of serial communication and low-level interaction with the microcontroller. For example, a GTK, Cocoa, wxWidgets, or even Android application can be written. As long as a network connection is possible with the RPC server, and the client can write python it can be done.
+
+The second component is the web interface - the current graphical user interface. It is a web application built with the Flask framework, which serves an elementary HTML page containing a video player to stream live images from a microscope and a form to get input from users. Requests are sent from the client's browser to the server using AJAX, then the server starts an RPC connection to relay the request onto the serial driver.
+
+Installation
+============
+
+TODO: package this thing up!
+
+File Organisation
+=================
+
+Currently, the web application and serial driver are seperated into two directories:
+
+- web/ - contains the code for the web application.
+- serial/ - serial driver, and an example RPC client.
 
