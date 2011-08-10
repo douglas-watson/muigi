@@ -31,11 +31,16 @@ import rpyc
 from constants import HOST, PORT
 
 def set_states(a, b):
-    connection = rpyc.connect(HOST, PORT)
+    # Connect and get main object
+    connection = rpyc.connect_by_service("CONTROLLER")
     c = connection.root
+
+    # Reset communication to microcontroller and set new states
     c.reset()
     return_value_a = c.set_a_state(a)
     return_value_b = c.set_a_state(b)
+
+    # Close nicely, and relay feedback to caller
     connection.close()
     return return_value_a, return_value_b
 

@@ -1,0 +1,70 @@
+% Notes on RPC Servers
+% 10 August 2011
+% Douglas Watson
+
+RPyC makes it easy to program an RPC server, but in the basic examples the port number it runs on has to be known in advance. Hardcoding a port number could cause trouble for deployment: if the port is already used, the server will not be able to run. Thus, it should be made more flexible; this quest is documented here.
+
+The two most obvious solutions that come to mind are to choose the port on runtime and advertise it through some name server (avahi, the RPyC name server, ...), or actually register it as a service with the kernel, to allow lookup with the standard tools. The name server option is more portable, but would probably require more coding. The unix service option is completely unix-specific, might require more configuration for deployment, but is easy to work with in python and fast.
+
+RPyC Name server
+================
+
+The RPyC registry server is a little hidden. With the virtualenv, it is located in the bin directory. For my setup (virtualenv located in env), run:
+
+	python env/bin/rpyc_registry.py
+
+RPyC servers automatically register to the registry server. Lookup is extremely simple. To find my 'CONTROLLER' service:
+
+	rpyc.discover('CONTROLLER')
+
+Or to directly connect, by name:
+
+	rpyc.connect_by_service('CONTROLLER')
+
+And it is fast. The next step is to get the name server running on the host computer, by default. For the time being, I wrote the `start_rpc.sh` script in the project root directory. Start the registry server and serial driver by running it:
+
+	./start_rpyc.sh
+
+If needed, to kill the name server, look up its process ID:
+
+	ps -elf | grep rpyc
+
+Then kill (`kill PID`).
+
+Unix services
+=============
+
+Unix services are easy to lookup in python, and very fast:
+	
+	>>> import socket
+	>>> socket.getservbyname('http', 'tcp')
+	80
+
+I haven't looked into registering a service (it seems you just need to add it to `/etc/services/`). Another option would be to use `inetd` to only start up the service upon request. It seems like an unecessary complicated (from the setup point of view) and platform-specific solution though.
+
+Pyro
+====
+
+Pyro seemed like a good alternative to RPyC, simply because of the better documentation, and ready availability of the name server on Ubuntu.
+
+Pyro was already installed on my computer (probably thanks to the python-scientific package). Getting the name server running was as simple as:
+
+	1) Edit /etc/default/pyro-nsd; change "ENABLED=0" to "ENABLED=1"
+	2) Run /etc/init.d/pyro-nsd start
+	3) Check it is running by listing all services:
+		pyro-nsc listall
+
+Name server lookup
+------------------
+
+Having played with the name server briefly, it seems lookup is extremely slow: it takes approximately five seconds on my box.
+
+Conclusion
+----------
+
+The only advantage was the easier name lookup, but it's too slow to be of any use. In conclusion, I will not use Pyro.
+
+JSON-RPC with python
+=====================
+
+Easy-to-use JSON-RPC is provided by the `jsonrpc` module. I should look into that. The advantage is that any client language can access it, be it python on the other end, plain javascript, java from android, objectiveC from iOS...
