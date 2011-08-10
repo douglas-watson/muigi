@@ -1,0 +1,7 @@
+% TODO
+% Douglas Watson
+
+Next steps:
+
+- Error handling through RPyC. Especially if it tries to access the serial port and it is not there.
+- Package the app into a python module

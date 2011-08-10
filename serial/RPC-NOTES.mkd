@@ -9,9 +9,9 @@ The two most obvious solutions that come to mind are to choose the port on runti
 RPyC Name server
 ================
 
-The RPyC registry server is a little hidden. With the virtualenv, it is located in the bin directory. For my setup (virtualenv located in env), run:
+The RPyC registry server is a little hidden. With the virtualenv, it is located in the bin directory. If the virtualenv is activated though, the script is loaded to the PATH, so lauching the server is as simple as:
 
-	python env/bin/rpyc_registry.py
+	rpyc_registry.py
 
 RPyC servers automatically register to the registry server. Lookup is extremely simple. To find my 'CONTROLLER' service:
 

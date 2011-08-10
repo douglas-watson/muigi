@@ -1,0 +1,23 @@
+% Deploying the controller
+% 10 August 2011
+% Douglas Watson
+
+I'm still figuring out how exactly to deploy the application. For the moment, the sensible choice seems to be hooking up the web application to an Apache server, and on the other side running both the RPyC name server and the Serial Driver as deamons (launched on startup).
+
+Web application
+===============
+
+The first step is be to package it up as a python package, so that it can be installed in a vitualenv, and imported in a separate python script as:
+	
+	from mywebapp import app as application
+
+This is required to make a wsgi application.
+
+Next, follow the instructions here: http://flask.pocoo.org/docs/deploying/mod_wsgi/, and make sure to follow the instructions for using a virtual environment (bottom of the page).
+
+Another, possibly even easier setup would be to use Cherrypy as a server, see: http://flask.pocoo.org/snippets/24/
+
+Driver and registry server
+==========================
+
+Look into init.d scripts.

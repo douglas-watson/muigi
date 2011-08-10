@@ -17,6 +17,7 @@ source env/bin/activate
 # `ps -elf | grep rpyc` 
 python env/bin/rpyc_registry.py &
 
-# Start serial driver
+# Start serial driver (just wait for a few seconds, for the registry to init.)
 cd serial/
+sleep 3
 python serial_driver.py
