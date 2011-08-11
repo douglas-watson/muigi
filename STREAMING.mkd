@@ -1,0 +1,36 @@
+% Notes on streaming video
+% 11 August 2011
+% Douglas Watson
+
+Streaming live video to the user is an essential component of the microfluidic game, and must be done with the shortest possible latency. Streaming video from a webcam is simple nowadays, thanks to online services such as UStream, Livestream, and Justin.tv, or even easy-to-setup local servers such as Flumotion. The challenge is to get low delays: those tools typically stream three to five seconds behind reality.
+
+These notes describe my various attempts at finding an appropriate streaming tool.
+
+Online Services
+===============
+
+The simplest method for streaming is to use an online service. I tried three: UStream, Livestream, and Justin.tv. Each of them offer a free account, where you can broadcast a live stream from your webcam, using a browser-based flash app. All three also offer an embeddedable flash player, to include in the web app.
+
+The procedure is simple: first, create a named "channel". Anytime you go live, the video is accessible through your channel. Next, find the code for the embeddable player corresponding to that channel, and paste it into the template for the web app. Finally, launch the broadcasting tool (usually accessible through a giant "Go Live" button), and start streaming.
+
+All three suffer from the same *limitation*: the video lags three seconds behind reality, and they overlay adverts on the video. I am most concerned by the first issue. Justin.tv also did not allow me to choose which camera to stream from, so I could only stream from my integrated laptop camera, rather than the external camera pointed at the microfluidic setup.
+
+As far as I can tell, the lag originates from the network, not the hardware: the live preview is in sync with my motion. Only the embedded video lags.
+
+
+Local Servers
+=============
+
+To date, I have tried four streaming servers: Flumotion, VLC, Darwin Streaming Server, and Palantir.
+
+Flumotion
+---------
+
+Easy to install on Ubuntu via ppa, very straightforward to setup: it come with a graphical wizzard to chose the video and audio source (or disable either), and what format to stream and embed (Ogg, even WebM).
+
+Unfortunately, the video stream was very jagged and about five seconds behind real time. This is possibly due to my hardware setup, as no network was involved (the client and server were running on the same computer). I do have hardware graphical acceleration disabled on my computer.
+
+Conclusion: *Easy set up, but slow. Possibly better with better hardware*
+
+Darwin Streaming Server (DSS)
+-----------------------------

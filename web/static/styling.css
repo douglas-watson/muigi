@@ -95,7 +95,6 @@ td label {
 dt {
 	/* these are the form labels, btw */
 	display: block;
-	border-bottom: 0.5px solid black;
 	background: #efefef;
 }
 
