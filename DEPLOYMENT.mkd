@@ -13,9 +13,16 @@ The first step is be to package it up as a python package, so that it can be ins
 
 This is required to make a wsgi application.
 
-Next, follow the instructions here: http://flask.pocoo.org/docs/deploying/mod_wsgi/, and make sure to follow the instructions for using a virtual environment (bottom of the page).
+Web server
+----------
 
-Another, possibly even easier setup would be to use Cherrypy as a server, see: http://flask.pocoo.org/snippets/24/
+The simplest production web server is to CherryPy's server, adapting it for Flask. I've created a `cherrypy.conf` file in the web/ directory, that allows starting a web server with the command:
+	
+	cherryd -c cherrypy.conf -i request_handler
+
+I still need to write an init.d script for it, and make it run as a daemon, but that's good enough for the moment.
+
+That's the easiest way I have found of running a Flask app on a CherryPy server. Easier than my previous attempt at writing a CherryPy program that imports the app and starts the server (as in `cherrypy_server.py`).
 
 Driver and registry server
 ==========================
