@@ -29,6 +29,7 @@
 
 import sys
 import rpyc
+from rpyc.utils.factory import DiscoveryError
 from constants import HOST, PORT
 from serial import SerialException
 
@@ -48,6 +49,8 @@ def set_states(a, b):
     0 - Success
     1 - Serial Error (any kind)
     Any other kind of exception results in raising an actual exception.
+    Other exceptions may appear. In any case, they will return a status code
+    higher than 0.
     """
     SUCCESS, FAIL = 0, 1
     try:
@@ -55,6 +58,8 @@ def set_states(a, b):
         connection = rpyc.connect_by_service("CONTROLLER")
         r = connection.root
         r.open_serial()
+    except DiscoveryError, e:
+        return FAIL, "Serial interface daemon unreachable."
     except Exception, e:
         # Ugly hack to catch the SerialException, but only that one
         # Exceptions through RPyC are a little hard to track.

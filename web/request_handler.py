@@ -42,8 +42,17 @@ app = Flask(__name__)
 # TODO make secret key more secret
 app.secret_key = '''\xf9\xae!\xca\xae\x1a\xd6k\xf3\xd1\xc3\xb18~\xe2V"\x89=`q\xde\x91\xe4'''
 
+##############################
+# Helpers
+##############################
+
+# Generate random valve state; intended for testing only
 from random import choice
 random_state = lambda: ''.join([choice(['0', '1']) for i in range(8)])
+
+
+# Categories of messages to flash
+flash_categories = ['message', 'error']
 
 
 class ControlForm(Form):
@@ -84,11 +93,12 @@ def set_states():
         b_state = to_bin(form.b_state.data)
         code, feedback = serial_client.set_states(a_state, b_state)
         app.logger.debug(feedback)
-        flash(feedback)
+        # flash, with category depending on success code of set_states call.
+        flash(feedback, flash_categories[code > 0])
     else:
         app.logger.debug('Form did not validate. Request for A & B: %s %s', 
                 a_state, b_state)
-        flash("Invalid input.")
+        flash("Invalid input.", "error")
     # Render partial template (just the form) and pass it back, including
     # errors and flashed messages (thanks to render_template magic)
     html_form = render_template("_control_form.html", form=form)

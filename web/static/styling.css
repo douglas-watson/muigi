@@ -74,7 +74,11 @@ div #videoplayer {
     color: gray;
 }
 
-/* reduce the indent of error messages */
+#response p.errors {
+    color: red;
+}
+
+/* -- reduce the indent of error messages -- */
 ul {
 	padding-left: 0;
 }
@@ -82,6 +86,7 @@ ul {
 li {
 	margin-left: 0;
 }
+/* --                                     -- */
 
 td {
 	text-align: center;

@@ -8,8 +8,8 @@
 </form>
 
 <span id="response">
-{% for message in get_flashed_messages() %}
-    <p class="flash">{{ message }}</p>
+{% for category, message in get_flashed_messages(with_categories=True) %}
+<p class="{{ category }}">{{ message }}</p>
 {% endfor %}
 </span>
 
