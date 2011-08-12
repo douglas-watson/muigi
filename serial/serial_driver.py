@@ -46,6 +46,14 @@ class ControllerService(rpyc.Service):
         if self.daq is not None:
             self.daq.close()
 
+    def reset_a(self):
+        """ Reset communication to valve A """
+        self.daq.write("!A" + chr(0))
+
+    def reset_b(self):
+        """ Reset communication to valve B """
+        self.daq.write("!B" + chr(0))
+
     def exposed_open_serial(self):
         ''' Open serial port to DAQ 
         
@@ -58,13 +66,6 @@ class ControllerService(rpyc.Service):
             raise SerialException(e)
         return "Serial connection established."
 
-    def reset_a(self):
-        """ Reset communication to valve A """
-        self.daq.write("!A" + chr(0))
-
-    def reset_b(self):
-        """ Reset communication to valve B """
-        self.daq.write("!B" + chr(0))
 
     def exposed_reset(self):
         """ Resets state of all valves on ports A and B, and enables

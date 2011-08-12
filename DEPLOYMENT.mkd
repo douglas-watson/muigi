@@ -20,9 +20,15 @@ The simplest production web server is to CherryPy's server, adapting it for Flas
 	
 	cherryd -c cherrypy.conf -i request_handler
 
-I still need to write an init.d script for it, and make it run as a daemon, but that's good enough for the moment.
+Or start it as a deamon:
 
-That's the easiest way I have found of running a Flask app on a CherryPy server. Easier than my previous attempt at writing a CherryPy program that imports the app and starts the server (as in `cherrypy_server.py`).
+	cherryd -c cherrypy.conf -i request_handler -p /var/run/cherrypy.pid -d
+
+To kill the process, simply get the PID from the .pid file:
+
+	kill `cat /var/run/cherrypy.pid`
+
+I still need to write an init.d script for it, and make it run as a daemon, but that's good enough for the moment.
 
 Driver and registry server
 ==========================

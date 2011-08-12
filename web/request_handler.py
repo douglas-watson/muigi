@@ -55,12 +55,20 @@ random_state = lambda: ''.join([choice(['0', '1']) for i in range(8)])
 flash_categories = ['message', 'error']
 
 
+# Convert data from a set of checkboxes in a form to the "binary state" string
+to_bin = lambda data: ''.join(str(int(i in data)) for i in range(8))
+
+##############################
+# Web App
+##############################
+
 class ControlForm(Form):
     """ Provides an interface to control the microcontroller """
     a_state = MultiCheckboxField('Valves on port A',
             choices=[(i, str(i + 1)) for i in range(8)], coerce=int, default=[])
     b_state = MultiCheckboxField('Valves on port B',
             choices=[(i, str(i + 1)) for i in range(8)], coerce=int, default=[])
+    k
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -73,7 +81,6 @@ def index():
         # flash(ret_b)
 
         # convert to binary:
-        to_bin = lambda data: ''.join(str(int(i in data)) for i in range(8))
         a_state = to_bin(form.a_state.data)
         b_state = to_bin(form.b_state.data)
         flash("New states: %s & %s" % (a_state, b_state))
@@ -88,7 +95,6 @@ def set_states():
     # TODO change this to actually call the actuation code and return more
     # useful feedback.
     if form.validate():
-        to_bin = lambda data: ''.join(str(int(i in data)) for i in range(8))
         a_state = to_bin(form.a_state.data)
         b_state = to_bin(form.b_state.data)
         code, feedback = serial_client.set_states(a_state, b_state)
