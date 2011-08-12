@@ -36,7 +36,7 @@ from custom_widgets import MultiCheckboxField
 
 import sys
 sys.path.append('../serial')
-from serial_client import set_states
+import serial_client
 
 app = Flask(__name__)
 # TODO make secret key more secret
@@ -82,15 +82,17 @@ def set_states():
         to_bin = lambda data: ''.join(str(int(i in data)) for i in range(8))
         a_state = to_bin(form.a_state.data)
         b_state = to_bin(form.b_state.data)
-        app.logger.debug('A & B states set to: %s %s', a_state, b_state)
-        flash("New states: %s & %s" % (a_state, b_state))
+        code, feedback = serial_client.set_states(a_state, b_state)
+        app.logger.debug(feedback)
+        flash(feedback)
     else:
-        app.logger.debug('Erroneous request for A & B: %s %s', a_state,
-                b_state)
-        flash("Invalid input")
+        app.logger.debug('Form did not validate. Request for A & B: %s %s', 
+                a_state, b_state)
+        flash("Invalid input.")
+    # Render partial template (just the form) and pass it back, including
+    # errors and flashed messages (thanks to render_template magic)
     html_form = render_template("_control_form.html", form=form)
-    return jsonify(html_form=html_form, new_a=random_state(),
-            new_b=random_state())
+    return jsonify(html_form=html_form)
 
 
 if __name__ == '__main__':

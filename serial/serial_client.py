@@ -27,24 +27,54 @@
 #
 #################################################
 
+import sys
 import rpyc
 from constants import HOST, PORT
+from serial import SerialException
 
 def set_states(a, b):
-    # Connect and get main object
-    connection = rpyc.connect_by_service("CONTROLLER")
-    c = connection.root
+    """ 
+    Attempts to set the ports valves on ports A and B to the specified values.
 
-    # Reset communication to microcontroller and set new states
-    c.reset()
-    return_value_a = c.set_a_state(a)
-    return_value_b = c.set_a_state(b)
+    INPUT
+    both arguments are binary numbers as strings, each bit represents the 
+    state of a valve
+    a - state of port A
+    b - same, for port B
 
-    # Close nicely, and relay feedback to caller
-    connection.close()
-    return return_value_a, return_value_b
+    RETURNS
+    A status code, and a message intended for relaying to the end user.
+    Status codes:
+    0 - Success
+    1 - Serial Error (any kind)
+    Any other kind of exception results in raising an actual exception.
+    """
+    SUCCESS, FAIL = 0, 1
+    try:
+        # Connect to RPyC server and get main object
+        connection = rpyc.connect_by_service("CONTROLLER")
+        r = connection.root
+        r.open_serial()
+    except Exception, e:
+        # Ugly hack to catch the SerialException, but only that one
+        # Exceptions through RPyC are a little hard to track.
+        if "SerialException" in e.args[0]:
+            return FAIL, "Microcontroller unavailable."
+        else:
+            raise e
+    else:
+        # Reset communication to microcontroller and set new states
+        r.reset()
+        return_value_a = r.set_a_state(a)
+        return_value_b = r.set_b_state(b)
+
+        # Close nicely, and relay feedback to caller
+        connection.close()
+        return SUCCESS, "%s %s" % (return_value_a, return_value_b)
 
 if __name__ == '__main__':
     from random import choice
     make_string = lambda: ''.join([choice(['0', '1']) for i in range(8)])
-    set_states(make_string(), make_string())
+    state, feedback = set_states(make_string(), make_string())
+    print feedback
+    sys.exit(state)

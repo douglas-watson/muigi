@@ -29,6 +29,8 @@
 
 import rpyc
 import serial
+from serial import SerialException
+import logging
 
 from constants import PORT, DEVICE
 
@@ -36,13 +38,25 @@ class ControllerService(rpyc.Service):
 
     def on_connect(self):
         print "Connection received"
-        # Open serial port
-        self.daq = serial.Serial(DEVICE)
+        self.daq = None # replaced later by self.exposed_open_serial()
 
     def on_disconnect(self):
-        print "Connection lost"
+        print "Connection closed"
         # Close serial port
-        self.daq.close()
+        if self.daq is not None:
+            self.daq.close()
+
+    def exposed_open_serial(self):
+        ''' Open serial port to DAQ 
+        
+        I have to implement this as a standalone method to send feedback to the
+        user. '''
+        try:
+            self.daq = serial.Serial(DEVICE)
+        except SerialException, e:
+            # raise it on the client side? TODO check this is necessary
+            raise SerialException(e)
+        return "Serial connection established."
 
     def reset_a(self):
         """ Reset communication to valve A """
@@ -69,6 +83,7 @@ class ControllerService(rpyc.Service):
         """
         state = state.encode('ascii').strip()
         self.daq.write("A" + chr(int(state, 2)))
+        print "A set to %s" % state
         return ("Set state of valves on port A: %s" % state)
 
     def exposed_set_b_state(self, state):
@@ -81,6 +96,8 @@ class ControllerService(rpyc.Service):
         """
         state = state.encode('ascii').strip()
         self.daq.write("B" + chr(int(state, 2)))
+        # logging.debug("B set to %s" % state)
+        print "B set to %s" % state
         return ("Set state of valves on port B: %s" % state)
 
 if __name__ == '__main__':
