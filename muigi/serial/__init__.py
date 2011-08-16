@@ -7,7 +7,8 @@ The python modules provide helper functions to communicate with the drivers. At
 the moment, a single driver exists, to control LBNC's house-built
 microcontroller. Eventually, each kind of supported controller will have its
 own driver. The module thus contains a single client:
-    - lbnc_client.py
+
+- lbnc_client.py
 
 Check the client's documentation for the functions it provides.
 

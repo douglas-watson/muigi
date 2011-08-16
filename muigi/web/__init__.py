@@ -34,9 +34,7 @@ from flaskext.wtf import Form
 from flaskext.wtf import validators as v
 from custom_widgets import MultiCheckboxField
 
-import sys
-sys.path.append('../serial')
-import serial_client
+from muigi.serial import lbnc_client as serial_client
 
 app = Flask(__name__)
 # TODO make secret key more secret
@@ -68,7 +66,6 @@ class ControlForm(Form):
             choices=[(i, str(i + 1)) for i in range(8)], coerce=int, default=[])
     b_state = MultiCheckboxField('Valves on port B',
             choices=[(i, str(i + 1)) for i in range(8)], coerce=int, default=[])
-    k
 
 
 @app.route('/', methods=['GET', 'POST'])

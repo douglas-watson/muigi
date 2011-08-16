@@ -1,0 +1,26 @@
+#!/usr/bin/env python
+# -*- coding: UTF8 -*-
+#
+#   run-devserver.py - Run the Flask development server for Muigi Web 
+#
+#   AUTHOR: Douglas Watson <douglas@watsons.ch>
+#
+#   DATE: started on 16 August 2011
+#
+#   LICENSE: GNU GPL
+#
+#################################################
+
+import sys
+import optparse
+
+"""
+run_devserver.py
+
+Starts the Flask development server in debug mode.
+
+For development ONLY. For production, use the CherryPy server.
+"""
+
+from muigi.web import app
+app.run(debug=True)

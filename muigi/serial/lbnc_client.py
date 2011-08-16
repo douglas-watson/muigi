@@ -43,8 +43,9 @@ Clicking in the valves indicates everything is working correctly.
 import sys
 import rpyc
 from rpyc.utils.factory import DiscoveryError
-from constants import HOST, PORT
 from serial import SerialException
+
+from lbnc_settings import HOST, PORT
 
 def set_states(a, b):
     """ 
