@@ -1,0 +1,14 @@
+#!/bin/bash
+# Starts the rpcserver
+#
+# FOR DEVELOPMENT ONLY
+# In production, set up system-wide scripts to run it as a daemon.
+
+# Get directory of the script
+DIR="$( cd "$( dirname "$0" )" && pwd )"
+
+# activate python vitualenv
+source $DIR/env/bin/activate
+
+# run rpyc server
+python $DIR/env/bin/rpyc_registry.py
