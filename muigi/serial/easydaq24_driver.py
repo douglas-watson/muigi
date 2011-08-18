@@ -72,8 +72,9 @@ import rpyc
 import serial
 from serial import SerialException
 import logging
+import time
 
-from lbnc_settings import PORT, DEVICE
+from lbnc_settings import PORT, DEVICE, BAUDRATE
 
 version = 'pre-alpha'
 
@@ -83,7 +84,7 @@ class EasyDAQService(rpyc.Service):
         print "Connection received"
         self.daq = None # replaced later by self.exposed_open_serial()
 
-        # Now I'm just using this as a kind of __init__ function
+        # Now I'm just using this method as an __init__ function
         self.ports = ['B', 'C', 'D']
 
     def on_disconnect(self):
@@ -102,7 +103,7 @@ class EasyDAQService(rpyc.Service):
         ''' 
 
         try: 
-            self.daq = serial.Serial(DEVICE) 
+            self.daq = serial.Serial(DEVICE, BAUDRATE) 
         except SerialException, e:
             raise SerialException(e) 
         return "Serial connection established."
@@ -110,6 +111,7 @@ class EasyDAQService(rpyc.Service):
     def exposed_serial_write(self, string):
         """ Directly write a string to the DAQ """
 
+        print "Sending:", string
         self.daq.write(string)
 
     def exposed_serial_read(self, num_bytes):
@@ -117,6 +119,10 @@ class EasyDAQService(rpyc.Service):
 
         answer = self.daq.read(num_bytes)
         return answer
+
+    def exposed_serial_flush(self):
+        """ Flush serial input and output. Wait until all data is written """
+        self.daq.flush()
 
     def exposed_set_all_to_output(self):
         """ Set all the relays to outputs. """
@@ -167,6 +173,8 @@ class EasyDAQService(rpyc.Service):
         lookup = {'B': 'B', 'C': 'E', 'D': 'H'}
         # Set modes:
         print "Sending:", lookup[port] + directions
+        time.sleep(0.01) # sleeping 10 ms prevents lost bytes
+        self.daq.flushOutput()
         self.daq.write(lookup[port] + dirs)
 
     def exposed_set_states(self, port, states):
@@ -200,7 +208,9 @@ class EasyDAQService(rpyc.Service):
         lookup = {'B': 'C', 'C': 'F', 'D': 'J'}
 
         # Set states:
-        print "Sending:", lookup[port] + states
+        print "Sending:", lookup[port] + states, lookup[port] + st
+        time.sleep(0.01) # sleeping 10 ms prevents lost bytes
+        self.daq.flushOutput()
         self.daq.write(lookup[port] + st)
 
     def exposed_read_states(self, port):
@@ -223,14 +233,16 @@ class EasyDAQService(rpyc.Service):
             raise ValueError("Port %s does not exist." % port)
 
         lookup = {'B': 'A', 'C': 'D', 'D': 'G'}
-        # Request state of ports
+
+        time.sleep(0.01) # sleeping 10 ms prevents lost bytes
+        # Flush input; otherwise we could be reading an errant byte
+        self.daq.flushInput()
+        self.daq.flushOutput()
+        # Request state of channels on that port
         self.exposed_serial_write(lookup[port] + "A")
         # And read response
         answer = self.exposed_serial_read(1)
-        # return "%08d" % int(bin(answer)[2:])
-        return ord(answer)
-
-
+        return "%08d" % int(bin(ord(answer))[2:])
 
 if __name__ == '__main__':
     from optparse import OptionParser
@@ -242,10 +254,13 @@ if __name__ == '__main__':
             dest="PORT", help="Port number for server to listen on")
     parser.add_option('-d', '--device', action="store", type="string", 
             dest="DEVICE", help="Device file for the microcontroller")
+    parser.add_option('-b', '--baudrate', action="store", type="string", 
+            dest="BAUDRATE", help="Baudrate for communication")
     (options, args) = parser.parse_args()
 
     if options.PORT: PORT = options.PORT
     if options.DEVICE: DEVICE = options.DEVICE
+    if options.BAUDRATE: BAUDRATE = options.BAUDRATE
 
     t = ThreadedServer(EasyDAQService, port=PORT)
     t.start()

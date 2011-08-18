@@ -65,8 +65,10 @@ if __name__ == '__main__':
     r = s.root
     r.open_serial()
 
+    
     flash_channels(r)
-    read_channel(r)
+    # r.set_states("D", '11001000')
+    # read_channel(r)
 
     s.close()
 
