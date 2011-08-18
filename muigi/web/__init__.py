@@ -48,13 +48,13 @@ app.secret_key = '''\xf9\xae!\xca\xae\x1a\xd6k\xf3\xd1\xc3\xb18~\xe2V"\x89=`q\xd
 from random import choice
 random_state = lambda: ''.join([choice(['0', '1']) for i in range(8)])
 
-
 # Categories of messages to flash
 flash_categories = ['message', 'error']
 
-
 # Convert data from a set of checkboxes in a form to the "binary state" string
 to_bin = lambda data: ''.join(str(int(i in data)) for i in range(8))
+# Reverse a string
+reverse = lambda s: s[-1::-1]
 
 ##############################
 # Web App
@@ -92,8 +92,8 @@ def set_states():
     # TODO change this to actually call the actuation code and return more
     # useful feedback.
     if form.validate():
-        a_state = to_bin(form.a_state.data)
-        b_state = to_bin(form.b_state.data)
+        a_state = reverse(to_bin(form.a_state.data))
+        b_state = reverse(to_bin(form.b_state.data))
         code, feedback = serial_client.set_states(a_state, b_state)
         app.logger.debug(feedback)
         # flash, with category depending on success code of set_states call.
