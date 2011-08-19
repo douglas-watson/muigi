@@ -1,0 +1,64 @@
+% Notes on streaming video
+% 11 August 2011
+% Douglas Watson
+
+Streaming live video to the user is an essential component of the microfluidic game, and must be done with the shortest possible latency. Streaming video from a webcam is simple nowadays, thanks to online services such as UStream, Livestream, and Justin.tv, or even easy-to-setup local servers such as Flumotion. The challenge is to get low delays: those tools typically stream three to five seconds behind reality.
+
+These notes describe my various attempts at finding an appropriate streaming tool.
+
+Currently, I have no solution for lag-free streaming. But, with the right tools, it should be possible to get something as smooth as google video chat, or something similar.
+
+Online Services
+===============
+
+The simplest method for streaming is to use an online service. I tried three: UStream, Livestream, and Justin.tv. Each of them offer a free account, where you can broadcast a live stream from your webcam, using a browser-based flash app. All three also offer an embeddedable flash player, to include in the web app.
+
+The procedure is simple: first, create a named "channel". Anytime you go live, the video is accessible through your channel. Next, find the code for the embeddable player corresponding to that channel, and paste it into the template for the web app. Finally, launch the broadcasting tool (usually accessible through a giant "Go Live" button), and start streaming.
+
+All three suffer from the same *limitation*: the video lags three seconds behind reality, and they overlay adverts on the video. I am most concerned by the first issue. Justin.tv also did not allow me to choose which camera to stream from, so I could only stream from my integrated laptop camera, rather than the external camera pointed at the microfluidic setup.
+
+As far as I can tell, the lag originates from the network, not the hardware: the live preview is in sync with my motion. Only the embedded video lags.
+
+
+Local Servers
+=============
+
+To date, I have tried four streaming servers: Flumotion, VLC, Darwin Streaming Server, and Palantir. The best bet seems to be Flumotion, with more bad-ass hardware.
+
+Flumotion
+---------
+
+Easy to install on Ubuntu via ppa, very straightforward to setup: it come with a graphical wizzard to chose the video and audio source (or disable either), and what format to stream and embed (Ogg, even WebM).
+
+Unfortunately, the video stream was very jagged and about five seconds behind real time. This is apperently due to my hardware setup, as no network was involved (the client and server were running on the same computer). Also, I have hardware graphical acceleration disabled on my computer.
+
+Conclusion: *Easy set up, but slow. Possibly better with better hardware.*
+
+Darwin Streaming Server (DSS)
+-----------------------------
+
+DSS is the open source version of Apple's quicktime server. It is mostly made to stream on-demand quicktime video, but can be tricked into streaming live video from a webcam in an open format.
+
+I got the server installed on Ubuntu, but serving the webcam stream looked unnecessarily hard.
+
+
+Palantir
+--------
+
+Couldn't get this one started without errors.
+
+VLC
+---
+
+Somewhat obscure configuration. Also, would freeze when attempting to share the video.
+
+
+Next stuff to check out
+=======================
+
+- Try harder with VLC
+- Optimize Flumotion
+- Check out Kaltura open video platform and
+- Red5 media server
+
+It looks like I might need a server running on a high performance computer, stream video to that server, have the server transcode the video, and pass it on to viewers. Flumotion might allow that in an easy way: have the capture device hooked up to the laptop, and send that off to a high-performance computer in the server room.

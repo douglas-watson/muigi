@@ -1,0 +1,56 @@
+% Driver structure
+% 18th August 2011
+% Douglas Watson
+
+The previous driver organisation was based on an old assumption, that I needed a daemon constantly connected to the serial port, whose only purpose is to exchange data with the microcontroller, and await socket connections from clients; making sure a single client connects at once. It gradually evolved into the "RPC driver" I have now.
+
+This structure no longer makes sense. I am providing a set of low-level functions via RPC, and also making what should be a library (a set of commands for the microcontroller) into a server or daemon. It is complicated and messy, and also requires rewriting of client-side code if the hardware is changed. Also, the way the RPC worked, it wasn't really exerting any supervision over the number of connections, or even keeping serial open or anything.
+
+It would make more sense to write the drivers as importable libraries, providing a standardised set of functions to downstream software (as well as lower-level functions, for hardware-specific applications). Ideally, a change of microcontroller would require a minor change in the code, such as changing
+
+	from driverA import Controller
+
+to 
+
+	from driverB import Controller
+
+The rest of the code, using just standardised functions, should then be able to work the same
+
+Support for settings
+====================
+
+In the driver code, settings could be handled in the same way as now (using a python settings file). The Controller class (or whatever it gets called in the final implementation) should provide the option to override them when initialised. For example, define it like so:
+
+	from settings import PORT
+	
+	class Controller:
+		""" Represents the control hardware """
+		
+		def __init__(self, port=PORT):
+			pass
+
+Then clients have the choice of implementing their own configuration format. Stuff like baudrate would still be kept in the `settings.py` file to avoid hard-coding it, even though it should never really need to be changed.
+
+When deployed, the user-configurable settings (such as device name) should be migrated to a file in `/etc/muigi` probably.
+
+Handling multiple requests
+==========================
+
+What if two clients at once are trying to send commands? Especially with the 10 ms delays introduced in the code, it could happen that they mess up the entire stream.
+
+Some kind of blocking can be introduced (as long as one client is connected, forbid any others to connect), but it could lead to problems if the connected client crashes without closing the connection.
+
+Generality
+==========
+
+The way of addressing channels should be the same for any driver. The driver should probably subclass a general "Template" class, announce the number of channels it provides control over, and then allow some easy way of setting either all pins at once (without messing with ports). Provide an interface somewhat like this (for a 6-channel controller):
+
+	>>> c.set_states([1, 0, 1, 1, 1, 1]) # all open but #2
+	>>> c.set_state(4, OPEN) # set channel four to active
+	>>> c.open_all()
+	>>> c.close_all()
+
+Application-specific layer
+==========================
+
+On top of the driver, the application-specific layer would come. This would do away with controlling pins, providing instead functions such as "flow_bacteria" or "flush_eggs".
