@@ -9,6 +9,6 @@ include each other.
 
 The package currently contains two modules:
 
-* muigi.serial - connect and control microcontrollers or DAQs
+* muigi.hardware - connect and control microcontrollers or DAQs
 * muigi.web - web interface to remote control the devices.
 """

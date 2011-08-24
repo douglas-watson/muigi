@@ -34,7 +34,7 @@ from flaskext.wtf import Form
 from flaskext.wtf import validators as v
 from custom_widgets import MultiCheckboxField
 
-from muigi.serial import lbnc_client as serial_client
+from muigi.hardware import lbnc_client as serial_client
 
 app = Flask(__name__)
 # TODO make secret key more secret

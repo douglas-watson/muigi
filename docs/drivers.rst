@@ -20,13 +20,13 @@ Writing your own driver
 LBNC driver
 -----------
 
-.. automodule:: muigi.serial
+.. automodule:: muigi.hardware
 
-.. automodule:: muigi.serial.lbnc_client
+.. automodule:: muigi.hardware.lbnc_client
     :members: set_states
 
 EasyDAQ driver
 --------------
 
-.. automodule:: muigi.serial.easydaq24_driver
+.. automodule:: muigi.hardware.easydaq
     :members:

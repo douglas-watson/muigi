@@ -13,8 +13,8 @@
 
 from random import randint
 
-from muigi.serial.easydaq import USB24mx as Controller
-from muigi.serial.lbnc_settings import DEVICE
+from muigi.hardware.easydaq import USB24mx as Controller
+from muigi.hardware.lbnc_settings import DEVICE
 
 class testController:
 

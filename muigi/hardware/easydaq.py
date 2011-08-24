@@ -66,6 +66,7 @@ class USB24mx():
         self._device = device
         self._baudrate = baudrate
 
+        # TODO change this to make it a 'with' type thing
         self.daq = None # replaced later by self.connect()
         """ A standard serial.Serial object """
 

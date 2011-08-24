@@ -4,3 +4,5 @@
 Next steps:
 
 - Package the app into a python module
+- find how I can run the serial tests only when hardware is connected (to avoid tons of failures when I run the other tests and hardware is not connected).
+ - write a python script that checks that the serial device in settings is available, and runs those tests only if it is. Then just run the standard nosetests. All that in a python script, or with a bash script "glue".
