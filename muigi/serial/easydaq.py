@@ -72,7 +72,6 @@ class USB24mx():
         # Attempt connection:
         self.connect() # raises SerialException if connection fails
 
-
     def connect(self):
         ''' Open serial connection to DAQ.
         
@@ -238,9 +237,10 @@ class USB24mx():
         '''
         
         # first eight go to port B, next to port C, last eight to port D.
-        self.set_port_states('B', ''.join(str(i) for i in states[:8]))
-        self.set_port_states('C', ''.join(str(i) for i in states[8:16]))
-        self.set_port_states('D', ''.join(str(i) for i in states[16:]))
+        # The string addresses in reverse order.
+        self.set_port_states('B', ''.join(str(i) for i in states[7::-1]))
+        self.set_port_states('C', ''.join(str(i) for i in states[15:7:-1]))
+        self.set_port_states('D', ''.join(str(i) for i in states[23:15:-1]))
 
 
     def read_state(self, relay):
@@ -253,7 +253,9 @@ class USB24mx():
 
         states = []
         for port in self.ports:
-            states += [int(i) for i in list(self.read_port_states(port))]
+            # note the reversed order of the string
+            states += [int(i) for i in
+                       list(self.read_port_states(port))[-1::-1]]
 
         return states
 

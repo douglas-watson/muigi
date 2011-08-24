@@ -22,13 +22,20 @@ class testController:
         self.c = Controller(DEVICE)
         self.c.connect()
 
+        # reset all relays to off
+        self.c.set_all_output()
+        self.c.set_states([0] * 24)
+
     def tearDown(self):
+        self.c.set_states([0] * 24)
         self.c.disconnect()
 
     def test_connection_handling(self):
         ''' Make sure errors are handled cleanly if connection is closed. '''
 
         # TODO
+        print "Implement Connection handling, and import settings from an " + \
+        "easydaq settings file"
         assert False
 
     def test_port_b(self):
@@ -75,22 +82,21 @@ class testController:
         It should be the same. Also covers the read_states method. '''
 
         rand_data = lambda N: [randint(0, 1) for i in range (N)]
+        self.c.set_all_output()
 
-        data = rand_data(24)
-        self.c.set_states(data)
-        data_back = self.c.read_states()
+        # Do it ten times. The clicking sounds cool.
+        for i in range(10):
+            data = rand_data(24)
+            self.c.set_states(data)
+            data_back = self.c.read_states()
 
-        print data
-        print data_back
         assert data == data_back
 
     def test_set_state(self):
         ''' Set state of a single valve, check the read back is the same'''
 
         # For each channel and both states, one by one
-        # TODO fix the indexing order
-        print ("Fix the indexing order!")
-        assert False
+        self.c.set_all_output()
 
         for chan in range(1, 25):
             self.c.set_state(chan, 1)
