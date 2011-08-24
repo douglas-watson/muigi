@@ -59,7 +59,7 @@ import time
 
 version = 'pre-alpha'
 
-class Controller():
+class USB24mx():
 
     def __init__(self, device, baudrate=9600):
         self.ports = ['B', 'C', 'D']
@@ -68,6 +68,9 @@ class Controller():
 
         self.daq = None # replaced later by self.connect()
         """ A standard serial.Serial object """
+
+        # Attempt connection:
+        self.connect() # raises SerialException if connection fails
 
 
     def connect(self):
@@ -80,7 +83,6 @@ class Controller():
         self.daq = serial.Serial(self._device, self._baudrate) 
         if not self.daq.isOpen():
             raise SerialException("Could not open device '%s'" % self._device)
-
 
     def disconnect(self):
         # TODO: figure out how to execute this automatically on shutdown.
@@ -212,6 +214,48 @@ class Controller():
         # And read response
         answer = self.daq.read(1)
         return "%08d" % int(bin(ord(answer))[2:])
+
+    def set_state(self, relay, state):
+        ''' Set the state of a single relay (1 for active, 0 for inactive)
+
+        Arguments:
+        relay - Number of the relay, from 1 to 24 (included)
+        state - 1 for active, 0 for inactive
+
+        '''
+
+        states = self.read_states()
+        states[relay - 1] = state
+        self.set_states(states)
+
+    def set_states(self, states):
+        ''' Set the states of all 24 relays at once 
+        
+        Arguments:
+        states - an array of 24 integers, either 1 (active) or 0 (inactive).
+            Note that element 0 of the array corresponds to channel 1, etc.
+        
+        '''
+        
+        # first eight go to port B, next to port C, last eight to port D.
+        self.set_port_states('B', ''.join(str(i) for i in states[:8]))
+        self.set_port_states('C', ''.join(str(i) for i in states[8:16]))
+        self.set_port_states('D', ''.join(str(i) for i in states[16:]))
+
+
+    def read_state(self, relay):
+        ''' Return the state of a single channel. Relays indexed from 1. '''
+
+        return self.read_states()[relay-1]
+
+    def read_states(self):
+        ''' Return the states of all 24 relays as an array of ints. '''
+
+        states = []
+        for port in self.ports:
+            states += [int(i) for i in list(self.read_port_states(port))]
+
+        return states
 
 if __name__ == '__main__':
     # run some simple test code
