@@ -69,8 +69,8 @@ def needs_serial(func):
         self = args[0]
         # Attempt to reconnect if connection is lost
         if not self.daq.isOpen():
-            with open('/home/douglas/Desktop/DEBUG2', 'a') as fo:
-                fo.write("Connection lost when calling %s. Reconnecting..." %
+            with open('DEBUG2', 'a') as fo:
+                fo.write("Connection lost when calling %s. Reconnecting...\n" %
                          func.__name__)
             self.connect()
         return func(*args, **kwargs)

@@ -254,17 +254,18 @@ class USB24mx():
         answer = self.daq.read(1)
 
         # TODO delete all withs
-        with open('/home/douglas/Desktop/DEBUG', 'a') as fo:
-            fo.write("'" + str(ord(answer)) + "'")
+        with open('DEBUG', 'a') as fo:
+            fo.write("'" + str(answer) + "'")
         if len(answer) == 0: # then it timed out. Reconnect and try again
-            with open('/home/douglas/Desktop/DEBUG', 'a') as fo:
+            with open('DEBUG', 'a') as fo:
                 fo.write(" - Attempting reconnect.")
+            time.sleep(3) # TODO Delete line
             self.connect()
-            with open('/home/douglas/Desktop/DEBUG', 'a') as fo:
+            with open('DEBUG', 'a') as fo:
                 fo.write(" New attempt at reading: ")
-            self.read_port_states(port)
+            return self.read_port_states(port)
 
-        with open('/home/douglas/Desktop/DEBUG', 'a') as fo:
+        with open('DEBUG', 'a') as fo:
             fo.write("\n")
 
         return "%08d" % int(bin(ord(answer))[2:])

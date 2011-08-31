@@ -34,13 +34,6 @@ class testUSB24mx:
         self.c.set_states([0] * 24)
         self.c.disconnect()
 
-
-    # @raises(ConnectionError)
-    # def test_connection_handling(self):
-        # ''' Make sure errors are handled cleanly if connection is closed. '''
-        # self.c.disconnect()
-        # self.read_states()
-
     def test_needs_serial(self):
         ''' Disconnects, and runs a fake function that 'needs serial'. The
         connection should be open again after executing that function. '''
