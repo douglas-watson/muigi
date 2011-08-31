@@ -13,8 +13,12 @@
 
 from random import randint
 
+import nose
+from nose.tools import raises
+
 from muigi.hardware.easydaq import USB24mx as Controller
-from muigi.hardware.lbnc_settings import DEVICE
+from muigi.hardware.easydaq_settings import DEVICE
+from muigi.hardware.lib import ConnectionError
 
 class testController:
 
@@ -30,13 +34,12 @@ class testController:
         self.c.set_states([0] * 24)
         self.c.disconnect()
 
+    @raises(ConnectionError)
     def test_connection_handling(self):
         ''' Make sure errors are handled cleanly if connection is closed. '''
 
-        # TODO
-        print "Implement Connection handling, and import settings from an " + \
-        "easydaq settings file"
-        assert False
+        self.c.disconnect()
+        self.read_states()
 
     def test_port_b(self):
         ''' Write random data to port B, and read it back (five times). The

@@ -40,9 +40,9 @@ To control the DAQ, create an instance of the Controller class, then establish
 a connection, and start sending commands:
 
 >> from easydaq24 import Controller
->> daq = Controller()
+>> daq = Controller('/dev/ttyUSB1')
 >> daq.connect()
->> daq.activate_channel(15) # activates channel 12
+>> daq.set_state(12, 1) # activates channel 12
 >> time.sleep(10)
 >> daq.set_states([1] * 12 + [0] * 12) # activate first 12 channels.
 >> daq.disconnect()
@@ -59,9 +59,14 @@ import time
 
 version = 'pre-alpha'
 
+OPEN = 1
+CLOSED = 0
+
 class USB24mx():
 
-    def __init__(self, device, baudrate=9600):
+    # TODO write docstring
+
+    def __init__(self, device, baudrate=9600, autoconnect=True):
         self.ports = ['B', 'C', 'D']
         self._device = device
         self._baudrate = baudrate
@@ -71,7 +76,8 @@ class USB24mx():
         """ A standard serial.Serial object """
 
         # Attempt connection:
-        self.connect() # raises SerialException if connection fails
+        if autoconnect:
+            self.connect() # raises SerialException if connection fails
 
     def connect(self):
         ''' Open serial connection to DAQ.
@@ -208,7 +214,8 @@ class USB24mx():
         time.sleep(0.01) # sleeping 10 ms prevents lost bytes
         # Flush input; otherwise we could be reading an errant byte
         self.daq.flushInput()
-        self.daq.flushOutput()
+        # self.daq.flushOutput()
+
         # Request state of channels on that port
         self.daq.write(lookup[port] + "A")
         # And read response
@@ -243,7 +250,6 @@ class USB24mx():
         self.set_port_states('C', ''.join(str(i) for i in states[15:7:-1]))
         self.set_port_states('D', ''.join(str(i) for i in states[23:15:-1]))
 
-
     def read_state(self, relay):
         ''' Return the state of a single channel. Relays indexed from 1. '''
 
@@ -254,7 +260,7 @@ class USB24mx():
 
         states = []
         for port in self.ports:
-            # note the reversed order of the string
+            # note the reversed order of the state string
             states += [int(i) for i in
                        list(self.read_port_states(port))[-1::-1]]
 
