@@ -16,14 +16,14 @@ from random import randint
 import nose
 from nose.tools import raises
 
-from muigi.hardware.easydaq import USB24mx as Controller
+from muigi.hardware.easydaq import USB24mx
 from muigi.hardware.easydaq_settings import DEVICE
-from muigi.hardware.lib import ConnectionError
+from muigi.hardware.lib import ConnectionError, needs_serial
 
-class testController:
+class testUSB24mx:
 
     def setUp(self):
-        self.c = Controller(DEVICE)
+        self.c = USB24mx(DEVICE)
         self.c.connect()
 
         # reset all relays to off
@@ -34,12 +34,28 @@ class testController:
         self.c.set_states([0] * 24)
         self.c.disconnect()
 
-    @raises(ConnectionError)
-    def test_connection_handling(self):
-        ''' Make sure errors are handled cleanly if connection is closed. '''
+
+    # @raises(ConnectionError)
+    # def test_connection_handling(self):
+        # ''' Make sure errors are handled cleanly if connection is closed. '''
+        # self.c.disconnect()
+        # self.read_states()
+
+    def test_needs_serial(self):
+        ''' Disconnects, and runs a fake function that 'needs serial'. The
+        connection should be open again after executing that function. '''
+
+        @needs_serial
+        def foo(self):
+            # note: "self" has to be the controller instance
+            pass
 
         self.c.disconnect()
-        self.read_states()
+        assert not self.c.daq.isOpen()
+
+        foo(self.c) # says it needs serial, so the decorator should open it.
+        assert self.c.daq.isOpen()
+
 
     def test_port_b(self):
         ''' Write random data to port B, and read it back (five times). The

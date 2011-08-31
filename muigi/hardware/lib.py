@@ -46,6 +46,16 @@ class ConnectionError(Exception):
 # Useful Decorators 
 ##############################
 
+def needs_serial_new(func):
+
+    def outFunc(*args, **kwargs):
+        self = args[0]
+        if self.daq.isOpen():
+            func(*args, **kwargs)
+
+    return outFunc
+
+
 def needs_serial(func):
     ''' Makes sure Controller is connected to the hardware device. Raises a
     ConnectionError otherwise. 
@@ -57,9 +67,12 @@ def needs_serial(func):
 
     def check_connection(*args, **kwargs):
         self = args[0]
-        if self.daq.isOpen():
-            func(*args, **kwargs)
-        else:
-            raise ConnectionError(self.device)
-    return check_connection
+        # Attempt to reconnect if connection is lost
+        if not self.daq.isOpen():
+            with open('/home/douglas/Desktop/DEBUG2', 'a') as fo:
+                fo.write("Connection lost when calling %s. Reconnecting..." %
+                         func.__name__)
+            self.connect()
+        return func(*args, **kwargs)
 
+    return check_connection

@@ -53,9 +53,12 @@ directions for example), are those used by EasyDAQ in their datasheet.
 """
 
 import sys
+import time
 import serial
 from serial import SerialException
-import time
+
+from easydaq_settings import DEVICE
+from lib import needs_serial
 
 version = 'pre-alpha'
 
@@ -64,12 +67,38 @@ CLOSED = 0
 
 class USB24mx():
 
-    # TODO write docstring
+    '''
+    A Controller for the EasyDAQ USB24mx relay card.
 
-    def __init__(self, device, baudrate=9600, autoconnect=True):
+    Parameters:
+    ----------
+
+    device - the device file (on UNIX). Typically /dev/ttyUSB* or similar.
+        Default loaded from easydaq_settings.py file
+    baudrate - Baudrate for the serial connection. Default 9600.
+    timeout - Timeout in seconds for reading from serial. Default 1 s.
+    autoconnect - Whether to connect to device upon initialisation of the class.
+
+
+    Non-standard methods:
+    --------------------
+    (check their docstrings for usage)
+    
+    set_all_output - Set all the relays to outputs.
+    set_all_input - Set all the relays to inputs.
+    set_port_directions - Set directions of a port's channels (input or output) 
+    set_port_states - Set the states of relays on a port
+    read_port_states - Reads the state of channels on one port
+
+    '''
+
+
+    def __init__(self, device=DEVICE, baudrate=9600, timeout=3, 
+                 autoconnect=True):
         self.ports = ['B', 'C', 'D']
         self._device = device
         self._baudrate = baudrate
+        self._timeout = timeout
 
         # TODO change this to make it a 'with' type thing
         self.daq = None # replaced later by self.connect()
@@ -86,7 +115,8 @@ class USB24mx():
 
         ''' 
 
-        self.daq = serial.Serial(self._device, self._baudrate) 
+        self.daq = serial.Serial(self._device, self._baudrate,
+                                 timeout=self._timeout) 
         if not self.daq.isOpen():
             raise SerialException("Could not open device '%s'" % self._device)
 
@@ -108,6 +138,7 @@ class USB24mx():
         for port in self.ports:
             self.set_port_directions(port, "11111111")
 
+    @needs_serial
     def set_port_directions(self, port, directions):
         """ Set directions of a port's channels to input or output (low-level)
         
@@ -154,8 +185,9 @@ class USB24mx():
         # self.daq.flushOutput()
         self.daq.write(lookup[port] + dirs)
 
+    @needs_serial
     def set_port_states(self, port, states):
-        """ Set the states of relays on a port, if they are set as active.
+        """ Set the states of relays on a port, if they are set as output.
         (low-level)
 
         Arguments:
@@ -190,6 +222,7 @@ class USB24mx():
         # self.daq.flushOutput()
         self.daq.write(lookup[port] + st)
 
+    @needs_serial
     def read_port_states(self, port):
         """ Reads the state of channels on one port
 
@@ -212,14 +245,28 @@ class USB24mx():
         lookup = {'B': 'A', 'C': 'D', 'D': 'G'}
 
         time.sleep(0.01) # sleeping 10 ms prevents lost bytes
-        # Flush input; otherwise we could be reading an errant byte
+        # Flush IO; otherwise we could be sending or reading an errant byte
         self.daq.flushInput()
-        # self.daq.flushOutput()
+        self.daq.flushOutput()
 
-        # Request state of channels on that port
+        # Request state of channels on that port and read response
         self.daq.write(lookup[port] + "A")
-        # And read response
         answer = self.daq.read(1)
+
+        # TODO delete all withs
+        with open('/home/douglas/Desktop/DEBUG', 'a') as fo:
+            fo.write("'" + str(ord(answer)) + "'")
+        if len(answer) == 0: # then it timed out. Reconnect and try again
+            with open('/home/douglas/Desktop/DEBUG', 'a') as fo:
+                fo.write(" - Attempting reconnect.")
+            self.connect()
+            with open('/home/douglas/Desktop/DEBUG', 'a') as fo:
+                fo.write(" New attempt at reading: ")
+            self.read_port_states(port)
+
+        with open('/home/douglas/Desktop/DEBUG', 'a') as fo:
+            fo.write("\n")
+
         return "%08d" % int(bin(ord(answer))[2:])
 
     def set_state(self, relay, state):
