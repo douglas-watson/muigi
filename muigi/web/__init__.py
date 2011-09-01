@@ -36,13 +36,29 @@ from flaskext.wtf import Form
 from flaskext.wtf import validators as v
 from custom_widgets import MultiCheckboxField
 
+from redis import Redis
+
 from flask_secrets import secret_key
 from muigi.hardware import lbnc_client as serial_client
+
+##############################
+# Setup 
+##############################
 
 app = Flask(__name__)
 # TODO make secret key more secret
 app.secret_key = secret_key
-app.online_users = []
+
+# Redis database stores the following data:
+# 
+# usercount - an integer, incremented each time a user logs in. Current value
+#   used as a user id.
+# waiting_line - an ordered list, where the score is login time. A disconnected
+#   user is removed from the list
+r = Redis('localhost')
+r.set('usercount', 0)
+
+app.usertimeout = 10   # seconds after which a user is kicked out
 
 ##############################
 # Helpers
@@ -114,10 +130,11 @@ def set_states():
 @app.route('/spectator')
 def spectator():
     session.permanent = False
-    if 'login-time' not in session:
-        session['login-time'] = time.time()
-        session['last-seen'] = time.time()
-        app.online_users.append(session)
+    if 'id' not in session: # then session is new!
+        id = str(r.incr('usercount'))
+        r.zadd('waiting_line', **{id:time.time()})
+        r.zadd('last_seen', **{id:time.time()})
+        session['id'] = id
     return render_template("spectator.html")
 
 @app.route('/_get_position')
@@ -125,29 +142,27 @@ def get_position():
     ''' Return position in line and waiting time. Also serves as 'heartbeat'.
 
     '''
-    time_online = time.time() - session['login-time']
-    last_seen = time.time() - session['last-seen']
-    session['last-seen'] = time.time()
-    return jsonify(position=1, time=int(time_online), last_seen=last_seen)
+    id = session['id']
+
+    # Update redis
+    r.zadd('last_seen', **{id:time.time()})
+
+    # Delete oldies from line
+    for oldie in r.zrangebyscore('last_seen', 0, time.time() - app.usertimeout):
+        r.zrem('waiting_line', oldie)
+        r.zrem('last_seen', oldie)
+
+    pos = int(r.zrank('waiting_line', id) + 1)
+    time_online = time.time() - r.zscore('waiting_line', id)
+    return jsonify(position=pos, time=int(time_online),
+                  redis_last=r.zrange('last_seen', 0, -1, withscores=True), 
+                  redis_wait=r.zrange('waiting_line', 0, -1, withscores=True))
 
 @app.route('/_get_users')
 def get_users():
     ''' Returns list of logged in users '''
-    users = [session['login-time'] for session in app.online_users]
-    return jsonify(users=users)
-
-
-@app.route('/time_update')
-def time_update():
-    ''' page that auto-updates time '''
-    return render_template("time_update.html")
-
-@app.route('/_get_time', methods=['GET'])
-def get_time():
-    import time
-    return jsonify(time=time.time())
-
-
+    return jsonify(redis_last=r.zrange('last_seen', 0, -1, withscores=True), 
+                  redis_wait=r.zrange('waiting_line', 0, -1, withscores=True))
 
 
 if __name__ == '__main__':
