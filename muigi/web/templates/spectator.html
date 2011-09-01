@@ -1,0 +1,11 @@
+{% extends "main_template.html" %}
+
+{% block javascript_src %}
+"{{ url_for('static', filename='spectator.js') }}"
+{% endblock %}
+
+{% block controls %}
+    <p>Your position in line: <span id="position"><span></p>
+    <p>Time logged in: <span id="time"><span></p>
+    <p>Last seen: <span id="lastseen"><span> ago</p>
+{% endblock %}

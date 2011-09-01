@@ -65,6 +65,12 @@ div #videoplayer {
  *     FONTS AND TEXT
  *  ---------------------- */
 
+#nojavascript {
+    color: red;
+    font-size: 20pt;
+    text-align: center;
+}
+
 .errors {
     color: red;
 	font-size: 9pt;
@@ -76,6 +82,11 @@ div #videoplayer {
 
 #response p.errors {
     color: red;
+}
+
+#time, #position {
+    display: block;
+    font-size: 25pt;
 }
 
 /* -- reduce the indent of error messages -- */

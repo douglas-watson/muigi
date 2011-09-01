@@ -16,5 +16,6 @@ setup(
                       'Flask-WTF', 
                       'pyserial',
                       'RPyC',
+                      'redis',
                      ]
 )

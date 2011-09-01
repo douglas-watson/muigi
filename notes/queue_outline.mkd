@@ -1,0 +1,62 @@
+% Web queue
+% 1 September 2011
+% Douglas Watson
+
+Notes on implementation of a waiting line for an AJAX app.
+
+Outline
+=======
+
+I would have a FIFO stack of all active users (people currently viewing the web site). Users are separated into two categories: a single one is a 'player', and all the others are 'spectators'. Users are all stored in the user stack. Inactive users are deleted from the stack. A player is send back to the end of the stack once he has finished playing.
+
+The *server* must fulfill the following tasks:
+- Store active users (see "Data structure" further on)
+ - session id
+ - 'last seen' time
+- Delete inactive users, if 'last seen' is more than X seconds ago
+- Provide an estimate of waiting time
+- Hand over controls to player when his time comes
+- If a control request comes in (let's say POST injection), only accept it if it comes from the player.
+
+For users in control, the server must:
+- Keep track of time in control
+- Provide remaining time in control
+- Kick out user after time is over
+
+On the *client* side, the javascript must poll the server every now and then, to say "hey dawg, I'm still online", and update the waiting time. All of these probably have to be asynchronious requests, implemented in a 'comet' fashion (see lower).
+- Heartbeat every x seconds
+- Poll remaining time
+- Show remaining time
+- Stop doing that if in control
+
+Views
+-----
+
+Probably have a 'spectator' and a 'player' view. Both would have video, one would have countdown and the other would have controls. One redirects to the other depending on user ID's status: if active, redirect to player, if inactive redirect to spectator.
+
+Any method related to the 'player' view should filter requests by ID. If the session ID corresponds the the playing user, accept it. If it corresponds to a 'spectator' ID, reject it and redirect to 'spectator' view.
+
+
+Defining activity
+-----------------
+
+It is easy to keep track of who has the page open in their browser, but I have to figure out a way of knowing the user is actually in front of the page, ready to take control. Maybe show a button one minute before action?
+
+Push controls
+-------------
+
+Keep separate functions for updating remaining time and for getting controls. Remaining time returns (almost) immediately, while controls waits super long, until a gevent "pushes" the controls to user.
+
+Data structure for the user list:
+---------------------------------
+
+- Session ID
+- Order of arrival [probably just the index in list]
+- Last seen (timestamp)
+- Active (bool)
+- Active since
+
+Comet
+=====
+
+Comet is an AJAX 'push' service. For an example implementation in Flask + gevent, see https://bitbucket.org/AlanYang/gevent-flask-comet

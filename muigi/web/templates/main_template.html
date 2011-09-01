@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title>Microfluidics remote</title>
+<link rel="stylesheet" type="text/css" 
+	href="{{ url_for('static', filename='styling.css') }}"></script>
+
+<!-- AJAX stuff -->
+<script type="text/javascript" 
+	src="{{ url_for('static', filename='jquery.js') }}"></script>
+<script type="text/javascript" 
+    src={% block javascript_src %}"{{ url_for('static', filename='ajax.js') }}"
+{% endblock %}></script>
+
+</head>
+<body>
+
+    <div id="main">
+        <div id="header">
+            <h1 id="heading">Microfluidics Remote</h1>
+        </div>
+
+        <div id="videoplayer">
+            <object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" width="480"
+            height="296" id="utv399646"><param name="flashvars"
+            value="autoplay=false&amp;brand=embed&amp;cid=8774084&amp;v3=1"/><param
+            name="allowfullscreen" value="true"/><param name="allowscriptaccess"
+            value="always"/><param name="movie"
+            value="http://www.ustream.tv/flash/viewer.swf"/><embed
+            flashvars="autoplay=false&amp;brand=embed&amp;cid=8774084&amp;v3=1"
+            width="460" height="284" allowfullscreen="true" allowscriptaccess="always"
+            id="utv399646" name="utv_n_17963"
+            src="http://www.ustream.tv/flash/viewer.swf"
+            type="application/x-shockwave-flash" /></object>
+        </div>
+
+        <div id="controls">
+        {% block controls %}
+        {% endblock %}
+        </div>
+
+    </div>
+
+</body>
+</html>

@@ -29,16 +29,20 @@
 #
 #################################################
 
-from flask import Flask, render_template, request, flash, jsonify
+import time
+
+from flask import Flask, render_template, request, flash, jsonify, session
 from flaskext.wtf import Form
 from flaskext.wtf import validators as v
 from custom_widgets import MultiCheckboxField
 
+from flask_secrets import secret_key
 from muigi.hardware import lbnc_client as serial_client
 
 app = Flask(__name__)
 # TODO make secret key more secret
-app.secret_key = '''\xf9\xae!\xca\xae\x1a\xd6k\xf3\xd1\xc3\xb18~\xe2V"\x89=`q\xde\x91\xe4'''
+app.secret_key = secret_key
+app.online_users = []
 
 ##############################
 # Helpers
@@ -106,6 +110,44 @@ def set_states():
     # errors and flashed messages (thanks to render_template magic)
     html_form = render_template("_control_form.html", form=form)
     return jsonify(html_form=html_form)
+
+@app.route('/spectator')
+def spectator():
+    session.permanent = False
+    if 'login-time' not in session:
+        session['login-time'] = time.time()
+        session['last-seen'] = time.time()
+        app.online_users.append(session)
+    return render_template("spectator.html")
+
+@app.route('/_get_position')
+def get_position():
+    ''' Return position in line and waiting time. Also serves as 'heartbeat'.
+
+    '''
+    time_online = time.time() - session['login-time']
+    last_seen = time.time() - session['last-seen']
+    session['last-seen'] = time.time()
+    return jsonify(position=1, time=int(time_online), last_seen=last_seen)
+
+@app.route('/_get_users')
+def get_users():
+    ''' Returns list of logged in users '''
+    users = [session['login-time'] for session in app.online_users]
+    return jsonify(users=users)
+
+
+@app.route('/time_update')
+def time_update():
+    ''' page that auto-updates time '''
+    return render_template("time_update.html")
+
+@app.route('/_get_time', methods=['GET'])
+def get_time():
+    import time
+    return jsonify(time=time.time())
+
+
 
 
 if __name__ == '__main__':

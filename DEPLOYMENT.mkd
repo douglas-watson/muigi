@@ -4,6 +4,17 @@
 
 I'm still figuring out how exactly to deploy the application. For the moment, the sensible choice seems to be hooking up the web application to an Apache server, and on the other side running both the RPyC name server and the Serial Driver as deamons (launched on startup).
 
+Installation
+============
+
+First, install the dependencies (trivial on Ubuntu):
+
+	sudo apt-get install python-distutils redis-server
+
+Then run the setup script:
+
+	sudo python setup.py install
+
 Web application
 ===============
 
