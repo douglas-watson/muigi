@@ -55,9 +55,9 @@ app.secret_key = secret_key
 #   used as a user id.
 # waiting_line - an ordered list, where the score is login time. A disconnected
 #   user is removed from the list
+# last_seen - an ordered list, with user id as value and time of last heartbeat
+#   as score
 r = Redis('localhost')
-r.set('usercount', 0)
-
 app.usertimeout = 10   # seconds after which a user is kicked out
 
 ##############################
@@ -104,7 +104,6 @@ def index():
     html_form = render_template("_control_form.html", form=form)
     return render_template("index.html", html_form=html_form)
 
-
 @app.route('/_set_states', methods=['POST'])
 def set_states():
     """ AJAX-specific function to set the states """
@@ -130,11 +129,11 @@ def set_states():
 @app.route('/spectator')
 def spectator():
     session.permanent = False
-    if 'id' not in session: # then session is new!
+    if session.new: # Create user id and register to waiting line
         id = str(r.incr('usercount'))
+        session['id'] = id
         r.zadd('waiting_line', **{id:time.time()})
         r.zadd('last_seen', **{id:time.time()})
-        session['id'] = id
     return render_template("spectator.html")
 
 @app.route('/_get_position')
@@ -148,9 +147,9 @@ def get_position():
     r.zadd('last_seen', **{id:time.time()})
 
     # Delete oldies from line
-    for oldie in r.zrangebyscore('last_seen', 0, time.time() - app.usertimeout):
-        r.zrem('waiting_line', oldie)
-        r.zrem('last_seen', oldie)
+    # for oldie in r.zrangebyscore('last_seen', 0, time.time() - app.usertimeout):
+     #    r.zrem('waiting_line', oldie)
+      #  r.zrem('last_seen', oldie)
 
     pos = int(r.zrank('waiting_line', id) + 1)
     time_online = time.time() - r.zscore('waiting_line', id)
@@ -158,11 +157,31 @@ def get_position():
                   redis_last=r.zrange('last_seen', 0, -1, withscores=True), 
                   redis_wait=r.zrange('waiting_line', 0, -1, withscores=True))
 
+@app.route('/_quit')
+def leave():
+    ''' Remove user from waiting line. Called when a user leaves the page. '''
+
+    id = session['id']
+    r.zrem('waiting_line', id)
+    r.zrem('last_seen', id)
+    return 'OK'
+
 @app.route('/_get_users')
 def get_users():
     ''' Returns list of logged in users '''
     return jsonify(redis_last=r.zrange('last_seen', 0, -1, withscores=True), 
                   redis_wait=r.zrange('waiting_line', 0, -1, withscores=True))
+
+@app.route('/_get_info')
+def get_info():
+    ''' Returns session info about the logged in user '''
+    id = session['id']
+    return jsonify(id=id, login=r.zscore('waiting_line', id), 
+                   last_seen=r.zscore('last_seen', id))
+
+@app.errorhandler(404)
+def not_found(error):
+    return render_template('404.html'), 404
 
 
 if __name__ == '__main__':
