@@ -6,13 +6,16 @@ function sendHeartbeat() {
             dataType: 'text',
             success: function(data) {
                 setTimeout(sendHeartbeat, 500);
+                // TODO if status is no longer player, switch to spectator mode
             }
     });
 }
 
 function getPosition() 
 {
-    /* Gets the position in line of a spectator, and doubles as a heartbeat */
+    /* Gets the position in line of a spectator, and doubles as a heartbeat.
+     * If the status switches from 'spectator' to 'player', load the controls
+     * form and start the player heartbeats. */
     $.ajax({
             method: 'get',
             url: '/_get_position',
