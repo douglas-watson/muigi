@@ -31,15 +31,51 @@
 
 import time
 
-from flask import Flask, render_template, request, flash, jsonify, session
+from flask import Flask, render_template, request, flash, jsonify, session, \
+    redirect, url_for
 from flaskext.wtf import Form
 from flaskext.wtf import validators as v
 from custom_widgets import MultiCheckboxField
 
 from redis import Redis
+from kronos import ThreadedScheduler, method
 
 from flask_secrets import secret_key
 from muigi.hardware import lbnc_client as serial_client
+
+##############################
+# Helpers
+##############################
+
+# Generate random valve state; intended for testing only
+from random import choice
+random_state = lambda: ''.join([choice(['0', '1']) for i in range(8)])
+
+# Categories of messages to flash
+flash_categories = ['message', 'error']
+
+# Convert data from a set of checkboxes in a form to the "binary state" string
+to_bin = lambda data: ''.join(str(int(i in data)) for i in range(8))
+# Reverse a string
+reverse = lambda s: s[-1::-1]
+
+def remove_inactive():
+    ''' Deletes inactive users from the waiting line. '''
+
+    for oldie in r.zrangebyscore('last_seen', 0, time.time() - app.usertimeout):
+        r.zrem('waiting_line', oldie)
+        r.zrem('last_seen', oldie)
+
+def get_waiting_time(id):
+    ''' Returns estimated waiting time for a user in the queue. Id is the
+    user id, as a string.
+
+    '''
+
+    # TODO get remaining playing time for current player (this is a fake)
+    remaining_time = app.playingtime - time.time() % app.playingtime
+    pos = r.zrank('waiting_line', id)
+    return pos * app.playingtime + remaining_time
 
 ##############################
 # Setup 
@@ -58,26 +94,20 @@ app.secret_key = secret_key
 # last_seen - an ordered list, with user id as value and time of last heartbeat
 #   as score
 r = Redis('localhost')
-app.usertimeout = 10   # seconds after which a user is kicked out
+app.usertimeout = 10    # seconds after which a user is kicked out
+app.playingtime = 10    # seconds of playing time per session
+app.purgeinterval = 5   # seconds after which the waiting line is purged
+
+# Every x seconds, delete inactive users from the waiting line.
+app.scheduler = ThreadedScheduler()
+app.scheduler.add_interval_task(remove_inactive, 'remove_inactive',
+                                app.purgeinterval, app.purgeinterval,
+                                method.threaded, None, None)
+
+
 
 ##############################
-# Helpers
-##############################
-
-# Generate random valve state; intended for testing only
-from random import choice
-random_state = lambda: ''.join([choice(['0', '1']) for i in range(8)])
-
-# Categories of messages to flash
-flash_categories = ['message', 'error']
-
-# Convert data from a set of checkboxes in a form to the "binary state" string
-to_bin = lambda data: ''.join(str(int(i in data)) for i in range(8))
-# Reverse a string
-reverse = lambda s: s[-1::-1]
-
-##############################
-# Web App
+# Views
 ##############################
 
 class ControlForm(Form):
@@ -129,7 +159,8 @@ def set_states():
 @app.route('/spectator')
 def spectator():
     session.permanent = False
-    if session.new: # Create user id and register to waiting line
+    if session.new or ('id' in session and session['id'] == -1): 
+        # Session is new or 'deleted'. create user and register to waiting line
         id = str(r.incr('usercount'))
         session['id'] = id
         r.zadd('waiting_line', **{id:time.time()})
@@ -138,44 +169,46 @@ def spectator():
 
 @app.route('/_get_position')
 def get_position():
-    ''' Return position in line and waiting time. Also serves as 'heartbeat'.
-
-    '''
+    ''' Return position in line and waiting time. Also logs 'heartbeat'. '''
     id = session['id']
 
     # Update redis
     r.zadd('last_seen', **{id:time.time()})
 
-    # Delete oldies from line
-    # for oldie in r.zrangebyscore('last_seen', 0, time.time() - app.usertimeout):
-     #    r.zrem('waiting_line', oldie)
-      #  r.zrem('last_seen', oldie)
-
     pos = int(r.zrank('waiting_line', id) + 1)
     time_online = time.time() - r.zscore('waiting_line', id)
-    return jsonify(position=pos, time=int(time_online),
+    waiting_time = int(get_waiting_time(id))
+    app.logger.debug(waiting_time)
+    return jsonify(position=pos, time=int(time_online), wait=waiting_time,
                   redis_last=r.zrange('last_seen', 0, -1, withscores=True), 
                   redis_wait=r.zrange('waiting_line', 0, -1, withscores=True))
 
-@app.route('/_quit')
-def leave():
+@app.route('/_quit', methods=['POST'])
+def quit():
     ''' Remove user from waiting line. Called when a user leaves the page. '''
 
     id = session['id']
     r.zrem('waiting_line', id)
     r.zrem('last_seen', id)
+    session['id'] = -1 # marks it a 'deleted' session
     return 'OK'
+
+@app.route('/_delete_old')
+def delete_old():
+    remove_inactive()
+    return redirect(url_for('get_users'))
 
 @app.route('/_get_users')
 def get_users():
-    ''' Returns list of logged in users '''
+    ''' Return list of logged in users. '''
     return jsonify(redis_last=r.zrange('last_seen', 0, -1, withscores=True), 
                   redis_wait=r.zrange('waiting_line', 0, -1, withscores=True))
 
 @app.route('/_get_info')
 def get_info():
-    ''' Returns session info about the logged in user '''
+    ''' Returns session info about the logged in user. '''
     id = session['id']
+    app.logger.debug(session.clear.__doc__)
     return jsonify(id=id, login=r.zscore('waiting_line', id), 
                    last_seen=r.zscore('last_seen', id))
 
@@ -185,4 +218,6 @@ def not_found(error):
 
 
 if __name__ == '__main__':
+    app.scheduler.start()
     app.run(debug=True, host='0.0.0.0')
+    app.scheduler.stop()

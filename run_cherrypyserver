@@ -16,7 +16,7 @@
 #################################################
 
 from cherrypy import wsgiserver
-from request_handler import app
+from muigi.web import app
 
 PORT=8080
 HOST='0.0.0.0'
@@ -27,6 +27,9 @@ server = wsgiserver.CherryPyWSGIServer((HOST, PORT), d)
 if __name__ == '__main__':
     try:
         print "Server running on %s:%s" % (HOST, PORT) 
+        app.scheduler.start()
         server.start()
     except KeyboardInterrupt:
         server.stop()
+        print "Server stopped"
+    app.scheduler.stop()

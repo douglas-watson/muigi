@@ -23,4 +23,6 @@ For development ONLY. For production, use the CherryPy server.
 """
 
 from muigi.web import app
+app.scheduler.start()
 app.run(debug=True, host='0.0.0.0')
+app.scheduler.stop()

@@ -49,7 +49,6 @@ class testUSB24mx:
         foo(self.c) # says it needs serial, so the decorator should open it.
         assert self.c.daq.isOpen()
 
-
     def test_port_b(self):
         ''' Write random data to port B, and read it back (five times). The
         data read back should match what was written. '''

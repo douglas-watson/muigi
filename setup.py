@@ -14,6 +14,7 @@ setup(
     zip_safe=False,
     install_requires=['Flask', 
                       'Flask-WTF', 
+                      'Flask-Celery',
                       'pyserial',
                       'RPyC',
                       'redis',

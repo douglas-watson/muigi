@@ -71,6 +71,12 @@ div #videoplayer {
     text-align: center;
 }
 
+.announcement{
+    /* 404s for example */
+    text-align: center;
+    font-size: 20pt;
+}
+
 .errors {
     color: red;
 	font-size: 9pt;
@@ -84,7 +90,7 @@ div #videoplayer {
     color: red;
 }
 
-#time, #position {
+.countdown {
     display: block;
     font-size: 25pt;
 }
