@@ -59,15 +59,23 @@ to_bin = lambda data: ''.join(str(int(i in data)) for i in range(8))
 # Reverse a string
 reverse = lambda s: s[-1::-1]
 
+# TODO write a "get id" helper, that returns the session id, or creates a new
+# one if necessary (if id doesn't exist, or is outdated)
+
+def heartbeat(id):
+    ''' Update "last_seen" line in Redis for the given id. '''
+    r.zadd('last_seen', **{id:time.time()})
+    return 'OK'
+
 def remove_inactive():
-    ''' Deletes inactive users from the waiting line. '''
+    ''' Delete inactive users from the waiting line. '''
 
     for oldie in r.zrangebyscore('last_seen', 0, time.time() - app.usertimeout):
         r.zrem('waiting_line', oldie)
         r.zrem('last_seen', oldie)
 
 def get_waiting_time(id):
-    ''' Returns estimated waiting time for a user in the queue. Id is the
+    ''' Return estimated waiting time for a user in the queue. Id is the
     user id, as a string.
 
     '''
@@ -123,23 +131,20 @@ def index():
     form = ControlForm(request.form, csrf_enabled=False)
     if form.validate_on_submit():
         # TODO uncomment when actual hardware is available.
-        # ret_a, ret_b = set_states(form.a_state.data, form.b_state.data)
-        # flash(ret_a)
-        # flash(ret_b)
+        a_state = reverse(to_bin(form.a_state.data))
+        b_state = reverse(to_bin(form.b_state.data))
+        code, feedback = serial_clientset_states(a_state, b_state)
 
-        # convert to binary:
-        a_state = to_bin(form.a_state.data)
-        b_state = to_bin(form.b_state.data)
-        flash("New states: %s & %s" % (a_state, b_state))
+        flash(feedback, flash_categories[code > 0])
+
     html_form = render_template("_control_form.html", form=form)
+
     return render_template("index.html", html_form=html_form)
 
 @app.route('/_set_states', methods=['POST'])
 def set_states():
     """ AJAX-specific function to set the states """
     form = ControlForm(request.form, csrf_enabled=False)
-    # TODO change this to actually call the actuation code and return more
-    # useful feedback.
     if form.validate():
         a_state = reverse(to_bin(form.a_state.data))
         b_state = reverse(to_bin(form.b_state.data))
@@ -154,34 +159,53 @@ def set_states():
     # Render partial template (just the form) and pass it back, including
     # errors and flashed messages (thanks to render_template magic)
     html_form = render_template("_control_form.html", form=form)
+
     return jsonify(html_form=html_form)
 
 @app.route('/spectator')
 def spectator():
     session.permanent = False
-    if session.new or ('id' in session and session['id'] == -1): 
+    if not 'id' in session or ('id' in session and session['id'] == -1
+                          or r.zrank('waiting_line', session['id']) is None): 
         # Session is new or 'deleted'. create user and register to waiting line
         id = str(r.incr('usercount'))
         session['id'] = id
         r.zadd('waiting_line', **{id:time.time()})
         r.zadd('last_seen', **{id:time.time()})
+
     return render_template("spectator.html")
+
+@app.route('/_player_heartbeat')
+def player_update():
+    ''' Update 'last seen' for a player. '''
+
+    id = session['id']
+    heartbeat(id)
+
+    return 'OK'
 
 @app.route('/_get_position')
 def get_position():
     ''' Return position in line and waiting time. Also logs 'heartbeat'. '''
     id = session['id']
+    data = {}
 
-    # Update redis
-    r.zadd('last_seen', **{id:time.time()})
+    heartbeat(id)
 
     pos = int(r.zrank('waiting_line', id) + 1)
-    time_online = time.time() - r.zscore('waiting_line', id)
-    waiting_time = int(get_waiting_time(id))
-    app.logger.debug(waiting_time)
-    return jsonify(position=pos, time=int(time_online), wait=waiting_time,
-                  redis_last=r.zrange('last_seen', 0, -1, withscores=True), 
-                  redis_wait=r.zrange('waiting_line', 0, -1, withscores=True))
+    data['position'] = pos
+    data['wait'] = int(get_waiting_time(id))
+
+    if pos == 1:
+        data['status'] = "player"
+        form = ControlForm(request.form, csrf_enabled=False)
+        data['form']= render_template("_control_form.html", form=form)
+    else:
+        data['status'] = "spectator"
+
+    return jsonify(**data)
+
+
 
 @app.route('/_quit', methods=['POST'])
 def quit():
@@ -191,12 +215,8 @@ def quit():
     r.zrem('waiting_line', id)
     r.zrem('last_seen', id)
     session['id'] = -1 # marks it a 'deleted' session
-    return 'OK'
 
-@app.route('/_delete_old')
-def delete_old():
-    remove_inactive()
-    return redirect(url_for('get_users'))
+    return 'OK'
 
 @app.route('/_get_users')
 def get_users():
@@ -209,6 +229,7 @@ def get_info():
     ''' Returns session info about the logged in user. '''
     id = session['id']
     app.logger.debug(session.clear.__doc__)
+
     return jsonify(id=id, login=r.zscore('waiting_line', id), 
                    last_seen=r.zscore('last_seen', id))
 
