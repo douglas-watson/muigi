@@ -81,9 +81,14 @@ def get_waiting_time(id):
     '''
 
     # TODO get remaining playing time for current player (this is a fake)
-    remaining_time = app.playingtime - time.time() % app.playingtime
+    remaining_time = get_playing_time()
     pos = r.zrank('waiting_line', id)
-    return pos * app.playingtime + remaining_time
+    return (pos - 1) * app.playingtime + remaining_time
+
+def get_playing_time():
+    ''' Return remaining game time for the current player '''
+    return app.playingtime - (time.time() - float(r.get("player_begintime")))
+
 
 ##############################
 # Setup 
@@ -93,6 +98,11 @@ app = Flask(__name__)
 # TODO make secret key more secret
 app.secret_key = secret_key
 
+# Constants used for the queue
+app.usertimeout = 10    # seconds after which a user is kicked out
+app.playingtime = 10    # seconds of playing time per session
+app.purgeinterval = 3   # seconds after which the waiting line is purged
+
 # Redis database stores the following data:
 # 
 # usercount - an integer, incremented each time a user logs in. Current value
@@ -101,10 +111,8 @@ app.secret_key = secret_key
 #   user is removed from the list
 # last_seen - an ordered list, with user id as value and time of last heartbeat
 #   as score
+
 r = Redis('localhost')
-app.usertimeout = 10    # seconds after which a user is kicked out
-app.playingtime = 10    # seconds of playing time per session
-app.purgeinterval = 5   # seconds after which the waiting line is purged
 
 # Every x seconds, delete inactive users from the waiting line.
 app.scheduler = ThreadedScheduler()
@@ -182,30 +190,38 @@ def player_update():
     id = session['id']
     heartbeat(id)
 
-    return 'OK'
+    status = 'player'
+    remaining_time = get_playing_time()
 
-@app.route('/_get_position')
-def get_position():
+    # swap back to spectator mode if time is out, and kick out user
+    if remaining_time <= 0:
+        status = 'spectator'
+        quit()
+
+    return jsonify(status=status, remaining_time=int(remaining_time))
+
+@app.route('/_spectator_heartbeat')
+def spectator_update():
     ''' Return position in line and waiting time. Also logs 'heartbeat'. '''
     id = session['id']
     data = {}
 
     heartbeat(id)
 
-    pos = int(r.zrank('waiting_line', id) + 1)
+    pos = int(r.zrank('waiting_line', id)) # starts at 0, 0 is player.
     data['position'] = pos
     data['wait'] = int(get_waiting_time(id))
 
-    if pos == 1:
+    # If position in line is one, switch to player mode
+    if pos == 0:
         data['status'] = "player"
         form = ControlForm(request.form, csrf_enabled=False)
         data['form']= render_template("_control_form.html", form=form)
+        r.set("player_begintime", time.time())
     else:
         data['status'] = "spectator"
 
     return jsonify(**data)
-
-
 
 @app.route('/_quit', methods=['POST'])
 def quit():

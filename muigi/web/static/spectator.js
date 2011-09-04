@@ -3,10 +3,16 @@ function sendHeartbeat() {
     $.ajax({
             method: 'get',
             url: '/_player_heartbeat',
-            dataType: 'text',
+            dataType: 'json',
             success: function(data) {
-                setTimeout(sendHeartbeat, 500);
-                // TODO if status is no longer player, switch to spectator mode
+                if ( data.status == 'player' ) {
+                    $("#time").html(data.remaining_time + " s");
+                    setTimeout(sendHeartbeat, 500);
+                } else if ( data.status == 'spectator' ) {
+                    // player has been deleted from queue. Redirect to
+                    // /spectator to start all over again.
+                    window.location = "/spectator";
+                }
             }
     });
 }
@@ -18,7 +24,7 @@ function getPosition()
      * form and start the player heartbeats. */
     $.ajax({
             method: 'get',
-            url: '/_get_position',
+            url: '/_spectator_heartbeat',
             dataType: 'json',
             success: function(data) { 
                 console.log(data.status);
