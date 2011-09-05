@@ -40,8 +40,7 @@ To control the DAQ, create an instance of the Controller class, then establish
 a connection, and start sending commands:
 
 >> from easydaq24 import Controller
->> daq = Controller('/dev/ttyUSB1')
->> daq.connect()
+>> daq = Controller()
 >> daq.set_state(12, 1) # activates channel 12
 >> time.sleep(10)
 >> daq.set_states([1] * 12 + [0] * 12) # activate first 12 channels.
@@ -52,7 +51,10 @@ directions for example), are those used by EasyDAQ in their datasheet.
 
 """
 
+import os
 import sys
+import errno
+import logging
 import time
 import serial
 from serial import SerialException
@@ -108,6 +110,19 @@ class USB24mx():
         if autoconnect:
             self.connect() # raises SerialException if connection fails
 
+    def is_available(self):
+        ''' Returns true if the serial device is still available
+
+        The DAQ sometimes disconnects without warning, as if the cable had been
+        unplugged. Use this to check for disconnection. Note that Serial.isOpen
+        does not work in such a case!
+
+        WARNING: this probably does not work on a non-UNIX platform.
+
+        '''
+
+        return os.path.exists(self._device)
+
     def connect(self):
         ''' Open serial connection to DAQ.
         
@@ -115,10 +130,34 @@ class USB24mx():
 
         ''' 
 
-        self.daq = serial.Serial(self._device, self._baudrate,
+        try:
+            self.daq = serial.Serial(self._device, self._baudrate,
                                  timeout=self._timeout) 
-        if not self.daq.isOpen():
+        except SerialException, e:
             raise SerialException("Could not open device '%s'" % self._device)
+
+    def reconnect(self):
+        ''' Attempts reconnection. Returns true if successful, False otherwise.
+
+        Use if the connection was lost (which happens often with the EasyDAQ.
+        
+        '''
+
+        while not self.is_available():
+            time.sleep(1) # wait a second, it might reconnect
+            logging.debug("Attempting reconnection")
+            # TODO return failure after a default timeout.
+
+        try:
+            self.connect()
+        except SerialException, e:
+            print logging.error(e) # TODO to log
+            print logging.debug("Reconnection failed")
+            return False
+
+        logging.debug("Reconnection succeeded")
+
+        return True
 
     def disconnect(self):
         # TODO: figure out how to execute this automatically on shutdown.
@@ -254,19 +293,8 @@ class USB24mx():
         answer = self.daq.read(1)
 
         # TODO delete all withs
-        with open('DEBUG', 'a') as fo:
-            fo.write("'" + str(answer) + "'")
-        if len(answer) == 0: # then it timed out. Reconnect and try again
-            with open('DEBUG', 'a') as fo:
-                fo.write(" - Attempting reconnect.")
-            time.sleep(3) # TODO Delete line
-            self.connect()
-            with open('DEBUG', 'a') as fo:
-                fo.write(" New attempt at reading: ")
-            return self.read_port_states(port)
-
-        with open('DEBUG', 'a') as fo:
-            fo.write("\n")
+        if len(answer) == 0: # then it timed out. Raise an I/O error
+            raise OSError(errno.EIO)
 
         return "%08d" % int(bin(ord(answer))[2:])
 

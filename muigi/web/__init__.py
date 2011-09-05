@@ -80,13 +80,14 @@ def get_waiting_time(id):
 
     '''
 
-    # TODO get remaining playing time for current player (this is a fake)
     remaining_time = get_playing_time()
     pos = r.zrank('waiting_line', id)
+
     return (pos - 1) * app.playingtime + remaining_time
 
 def get_playing_time():
     ''' Return remaining game time for the current player '''
+
     return app.playingtime - (time.time() - float(r.get("player_begintime")))
 
 
@@ -134,7 +135,7 @@ class ControlForm(Form):
             choices=[(i, str(i + 1)) for i in range(8)], coerce=int, default=[])
 
 
-@app.route('/', methods=['GET', 'POST'])
+# @app.route('/', methods=['GET', 'POST'])
 def index():
     form = ControlForm(request.form, csrf_enabled=False)
     if form.validate_on_submit():
@@ -170,11 +171,10 @@ def set_states():
 
     return jsonify(html_form=html_form)
 
-@app.route('/spectator')
+@app.route('/')
 def spectator():
     session.permanent = False
-    if not 'id' in session or ('id' in session and session['id'] == -1
-                          or r.zrank('waiting_line', session['id']) is None): 
+    if not 'id' in session or r.zrank('waiting_line', session['id']) is None: 
         # Session is new or 'deleted'. create user and register to waiting line
         id = str(r.incr('usercount'))
         session['id'] = id
@@ -208,9 +208,10 @@ def spectator_update():
 
     heartbeat(id)
 
+    wait = get_waiting_time(id)
     pos = int(r.zrank('waiting_line', id)) # starts at 0, 0 is player.
     data['position'] = pos
-    data['wait'] = int(get_waiting_time(id))
+    data['wait'] = int(wait)
 
     # If position in line is one, switch to player mode
     if pos == 0:
@@ -230,7 +231,6 @@ def quit():
     id = session['id']
     r.zrem('waiting_line', id)
     r.zrem('last_seen', id)
-    session['id'] = -1 # marks it a 'deleted' session
 
     return 'OK'
 

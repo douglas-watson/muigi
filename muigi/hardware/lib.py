@@ -21,6 +21,11 @@ exceptions or decorators.
 
 '''
 
+import sys
+from serial import SerialException
+import termios
+import logging
+
 
 ##############################
 # Exceptions
@@ -46,16 +51,6 @@ class ConnectionError(Exception):
 # Useful Decorators 
 ##############################
 
-def needs_serial_new(func):
-
-    def outFunc(*args, **kwargs):
-        self = args[0]
-        if self.daq.isOpen():
-            func(*args, **kwargs)
-
-    return outFunc
-
-
 def needs_serial(func):
     ''' Makes sure Controller is connected to the hardware device. Raises a
     ConnectionError otherwise. 
@@ -68,11 +63,24 @@ def needs_serial(func):
     def check_connection(*args, **kwargs):
         self = args[0]
         # Attempt to reconnect if connection is lost
-        if not self.daq.isOpen():
-            with open('DEBUG2', 'a') as fo:
-                fo.write("Connection lost when calling %s. Reconnecting...\n" %
-                         func.__name__)
-            self.connect()
-        return func(*args, **kwargs)
+
+        try:
+            return_value = func(*args, **kwargs)
+        except (OSError, SerialException, termios.error), e:
+            # The connection was dropped somewhere along the line
+            print e
+            logging.debug("Connection lost calling %s, attempting reconnection"
+                           % func.__name__)
+            if self.reconnect():
+                # and try again...
+                logging.debug("Reconnected, now trying again:")
+                return_value = check_connection(*args, **kwargs)
+            else:
+                logging.debug("Reconnection Impossible. Bye bye")
+                sys.exit(1) # TODO get rid of this!
+            logging.debug(return_value)
+            return return_value
+        else:
+            return return_value
 
     return check_connection
