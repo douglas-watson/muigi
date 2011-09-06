@@ -62,6 +62,22 @@ reverse = lambda s: s[-1::-1]
 # TODO write a "get id" helper, that returns the session id, or creates a new
 # one if necessary (if id doesn't exist, or is outdated)
 
+def get_user_id():
+    ''' Returns the id of the current user. 
+
+    If it is a new or invalid login, add the user to the queue and adjust
+    last_seen.
+    '''
+
+    # if session is new or 'deleted', create user and register to waiting line
+    if not 'id' in session or r.zrank('waiting_line', session['id']) is None: 
+        id = str(r.incr('usercount'))
+        session['id'] = id
+        r.zadd('waiting_line', **{id:time.time()})
+        r.zadd('last_seen', **{id:time.time()})
+
+    return session['id']
+
 def heartbeat(id):
     ''' Update "last_seen" line in Redis for the given id. '''
     r.zadd('last_seen', **{id:time.time()})
@@ -122,7 +138,6 @@ app.scheduler.add_interval_task(remove_inactive, 'remove_inactive',
                                 method.threaded, None, None)
 
 
-
 ##############################
 # Views
 ##############################
@@ -150,6 +165,13 @@ def index():
 
     return render_template("index.html", html_form=html_form)
 
+@app.route('/')
+def spectator():
+    session.permanent = False
+    id = get_user_id()
+
+    return render_template("spectator.html")
+
 @app.route('/_set_states', methods=['POST'])
 def set_states():
     """ AJAX-specific function to set the states """
@@ -171,23 +193,11 @@ def set_states():
 
     return jsonify(html_form=html_form)
 
-@app.route('/')
-def spectator():
-    session.permanent = False
-    if not 'id' in session or r.zrank('waiting_line', session['id']) is None: 
-        # Session is new or 'deleted'. create user and register to waiting line
-        id = str(r.incr('usercount'))
-        session['id'] = id
-        r.zadd('waiting_line', **{id:time.time()})
-        r.zadd('last_seen', **{id:time.time()})
-
-    return render_template("spectator.html")
-
 @app.route('/_player_heartbeat')
 def player_update():
     ''' Update 'last seen' for a player. '''
 
-    id = session['id']
+    id = get_user_id()
     heartbeat(id)
 
     status = 'player'
@@ -203,7 +213,7 @@ def player_update():
 @app.route('/_spectator_heartbeat')
 def spectator_update():
     ''' Return position in line and waiting time. Also logs 'heartbeat'. '''
-    id = session['id']
+    id = get_user_id()
     data = {}
 
     heartbeat(id)
