@@ -51,6 +51,7 @@ random state.
 
 import sys
 import rpyc
+import collections
 from rpyc.utils.factory import DiscoveryError
 from serial import SerialException
 
@@ -80,8 +81,8 @@ def set_states(states):
     except Exception, e:
         # Ugly hack to catch the SerialException, but only that one
         # Exceptions through RPyC are a little hard to track.
-        if "SerialException" in e.args[0]:
-            print e
+        if isinstance(e, collections.Iterable) and \
+            "SerialException" in e.args[0]:
             return FAIL, "Microcontroller unavailable."
         else:
             raise e

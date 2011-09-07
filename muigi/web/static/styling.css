@@ -127,3 +127,10 @@ dt {
 	background: #efefef;
 }
 
+dd {
+	/* The checkboxes in the form are in a dd */
+    margin-left: 0px; /* remove indent */
+    -webkit-margin-start: 0px;
+    text-align:center;
+}
+

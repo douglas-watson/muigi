@@ -4,10 +4,9 @@
 </div>
 <form id="control_form" method="post" action=".">
     <dl>
-        {{ render_field(form.a_state) }}
-        {{ render_field(form.b_state) }}
+        {{ render_field(form.states) }}
     </dl>
-    <!-- Now it's fully AJAX, submit button has no meaning 
+    <!-- Now it's AJAX only, submit button has no meaning 
     <p><input id="submit" type="submit" value="Submit"></p>
     -->
 </form>

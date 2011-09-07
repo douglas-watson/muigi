@@ -58,7 +58,7 @@ from redis import Redis
 from kronos import ThreadedScheduler, method
 
 from flask_secrets import get_secret_key
-from muigi.hardware import lbnc_client as serial_client
+import muigi.applications.tamagotchip_client as tamagotchip
 
 ##############################
 # Helpers
@@ -71,13 +71,23 @@ random_state = lambda: ''.join([choice(['0', '1']) for i in range(8)])
 # Categories of messages to flash
 flash_categories = ['message', 'error']
 
-# Convert data from a set of checkboxes in a form to the "binary state" string
-to_bin = lambda data: ''.join(str(int(i in data)) for i in range(8))
 # Reverse a string
 reverse = lambda s: s[-1::-1]
 
-# TODO write a "get id" helper, that returns the session id, or creates a new
-# one if necessary (if id doesn't exist, or is outdated)
+def to_states(data):
+    ''' Convert form data from a set of checkboxes to the array of states.
+    
+    `data` contains the inded of checked boxes. This function converts that to
+    a 12 element-long list with a 1 in checked positions, and 0 in unchecked
+    positions.
+
+    Example:
+
+    >>> to_states([0, 2, 11])
+    [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1]
+
+    '''
+    return [int(i in data) for i in range(12)]
 
 def get_user_id():
     ''' Returns the id of the current user. 
@@ -130,12 +140,11 @@ def get_playing_time():
 ##############################
 
 app = Flask(__name__)
-# TODO make secret key more secret
 app.secret_key = get_secret_key()
 
 # Constants used for the queue
 app.usertimeout = 10    # seconds after which a user is kicked out
-app.playingtime = 10    # seconds of playing time per session
+app.playingtime = 60    # seconds of playing time per session
 app.purgeinterval = 3   # seconds after which the waiting line is purged
 
 # Redis database stores the following data:
@@ -167,26 +176,10 @@ app.scheduler.add_interval_task(remove_inactive, 'remove_inactive',
 
 class ControlForm(Form):
     """ Provides an interface to control the microcontroller """
-    a_state = MultiCheckboxField('Valves on port A',
-            choices=[(i, str(i + 1)) for i in range(8)], coerce=int, default=[])
-    b_state = MultiCheckboxField('Valves on port B',
-            choices=[(i, str(i + 1)) for i in range(8)], coerce=int, default=[])
+    states = MultiCheckboxField('Valve control',
+            choices=[(i, str(i + 1)) for i in range(12)], 
+                                coerce=int, default=[])
 
-
-# @app.route('/', methods=['GET', 'POST'])
-def index():
-    form = ControlForm(request.form, csrf_enabled=False)
-    if form.validate_on_submit():
-        # TODO uncomment when actual hardware is available.
-        a_state = reverse(to_bin(form.a_state.data))
-        b_state = reverse(to_bin(form.b_state.data))
-        code, feedback = serial_clientset_states(a_state, b_state)
-
-        flash(feedback, flash_categories[code > 0])
-
-    html_form = render_template("_control_form.html", form=form)
-
-    return render_template("index.html", html_form=html_form)
 
 @app.route('/')
 def spectator():
@@ -200,9 +193,9 @@ def set_states():
     """ AJAX-specific function to set the states """
     form = ControlForm(request.form, csrf_enabled=False)
     if form.validate():
-        a_state = reverse(to_bin(form.a_state.data))
-        b_state = reverse(to_bin(form.b_state.data))
-        code, feedback = serial_client.set_states(a_state, b_state)
+        states = to_states(form.states.data)
+        app.logger.debug("Setting states to: %s", str(states))
+        code, feedback = tamagotchip.set_states(states)
         app.logger.debug(feedback)
         # flash, with category depending on success code of set_states call.
         flash(feedback, flash_categories[code > 0])

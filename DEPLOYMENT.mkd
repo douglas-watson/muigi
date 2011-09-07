@@ -1,33 +1,49 @@
-% Deploying the controller
-% 10 August 2011
+% Deploying Muigi
+% Started 10 August 2011, last update 7th September 2011
 % Douglas Watson
 
-I'm still figuring out how exactly to deploy the application. For the moment, the sensible choice seems to be hooking up the web application to an Apache server, and on the other side running both the RPyC name server and the Serial Driver as deamons (launched on startup).
+
+Virtualenv
+==========
+
+For development, I recommend working from a virtual environment. Install virtualenv:
+
+	sudo pip install virtualenv
+
+If you do not have pip installed, install it through easy_install (and if you don't have easy_install, install `python-distutils` through `apt-get`):
+
+	sudo easy_install pip
+
+Navigate to the project's directory, then create and run the virtual environment:
+
+	virtualenv env
+	. env/bin/activate
+
+From now on, packages will be installed to the virtualenv, so you can follow the rest of the deployment guide without affecting your computer's python installation.
 
 Installation
 ============
 
-First, install the dependencies (trivial on Ubuntu):
+First, install the dependencies:
 
 	sudo apt-get install python-distutils redis-server
 
-Then run the setup script:
+Then run the setup script to install Muigi (don't do this for development though):
 
 	sudo python setup.py install
 
-Web application
-===============
+Lauching the web application
+============================
 
-The first step is be to package it up as a python package, so that it can be installed in a vitualenv, and imported in a separate python script as:
+For the web application, two servers must be running: the Redis server and the web server. Redis is usually running by default if it is installed (at least on Ubuntu). Otherwise, start it. For a Debian-based system:
 	
-	from mywebapp import app as application
+	/etc/init.d/redis-server start
 
-This is required to make a wsgi application.
 
 Web server
 ----------
 
-The simplest production web server is to CherryPy's server, adapting it for Flask. I've created a `cherrypy.conf` file in the web/ directory, that allows starting a web server with the command:
+The simplest to use production web server is CherryPy's server, adapted for Flask. I've created a `cherrypy.conf` file in the web/ directory, that allows starting a web server with the command:
 	
 	cherryd -c cherrypy.conf -i request_handler
 
@@ -40,6 +56,19 @@ To kill the process, simply get the PID from the .pid file:
 	kill `cat /var/run/cherrypy.pid`
 
 I still need to write an init.d script for it, and make it run as a daemon, but that's good enough for the moment.
+
+RPyC Server
+-----------
+
+The RPyC registry is needed to communicate between the web application and the driver. Two servers are needed: the "Registry" which stores the addresses of all running RPC servers, to make them easy to 'discover', and the actual RPC server (i.e, the application server). In development, start the first using:
+
+	./run_rpcserver
+
+Then start whichever application server you want. For tamagotchip, start:
+
+	./muigi/applications/tamagotchip_server.py
+	
+It should then register to the registry, and allow client connections. If not, start again.
 
 Driver and registry server
 ==========================

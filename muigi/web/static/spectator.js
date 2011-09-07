@@ -4,7 +4,7 @@
 function playerHeartbeat() {
     /* Used to make sure the player is still online */
     $.ajax({
-            method: 'get',
+            type: 'GET',
             url: '/_player_heartbeat',
             dataType: 'json',
             success: function(data) {
@@ -26,7 +26,7 @@ function spectatorHeartbeat()
      * If the status switches from 'spectator' to 'player', load the controls
      * form and start the player heartbeats. */
     $.ajax({
-            method: 'get',
+            type: 'GET',
             url: '/_spectator_heartbeat',
             dataType: 'json',
             success: function(data) { 
@@ -56,7 +56,7 @@ function leavePage()
 
 function submitForm() {
     $.ajax({
-            method: 'post',
+            type: 'POST',
             url: '/_set_states',
             datatype: 'json',
             data: $('#control_form').serialize(),
