@@ -57,7 +57,7 @@ from custom_widgets import MultiCheckboxField
 from redis import Redis
 from kronos import ThreadedScheduler, method
 
-from flask_secrets import secret_key
+from flask_secrets import get_secret_key
 from muigi.hardware import lbnc_client as serial_client
 
 ##############################
@@ -130,7 +130,7 @@ def get_playing_time():
 
 app = Flask(__name__)
 # TODO make secret key more secret
-app.secret_key = secret_key
+app.secret_key = get_secret_key()
 
 # Constants used for the queue
 app.usertimeout = 10    # seconds after which a user is kicked out
