@@ -41,7 +41,10 @@ class testUSB24mx:
         @needs_serial
         def foo(self):
             # note: "self" has to be the controller instance
-            pass
+            ''' Raises a SerialError if connection is not open '''
+            if not self.daq.isOpen or not self.is_available():
+                print "Serial not available"
+                raise SerialError("Serial connection closed")
 
         self.c.disconnect()
         assert not self.c.daq.isOpen()

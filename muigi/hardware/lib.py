@@ -21,11 +21,15 @@ exceptions or decorators.
 
 '''
 
+__all__ = [
+    'ConnectionError',
+    'needs_serial',
+]
+
 import sys
 from serial import SerialException
 import termios
 import logging
-
 
 ##############################
 # Exceptions
@@ -69,8 +73,9 @@ def needs_serial(func):
         except (OSError, SerialException, termios.error), e:
             # The connection was dropped somewhere along the line
             print e
-            logging.debug("Connection lost calling %s, attempting reconnection"
-                           % func.__name__)
+            logging.debug("Connection lost calling %s(%s)," + \
+                          "attempting reconnection", func.__name__,
+                          str(args[1:]))
             if self.reconnect():
                 # and try again...
                 logging.debug("Reconnected, now trying again:")

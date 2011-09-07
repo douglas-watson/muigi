@@ -1,2 +1,6 @@
 recursive-include muigi/web/templates *
 recursive-include muigi/web/static *
+recursive-include doc/html *
+prune doc/html/.doctrees/
+exclude doc/html/.buildinfo
+include COPYING.txt

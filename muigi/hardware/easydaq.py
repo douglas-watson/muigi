@@ -51,6 +51,12 @@ directions for example), are those used by EasyDAQ in their datasheet.
 
 """
 
+__all__ = [
+    'USB24mx',
+    'OPEN',
+    'CLOSED',
+]
+
 import os
 import sys
 import errno
@@ -61,8 +67,6 @@ from serial import SerialException
 
 from easydaq_settings import DEVICE
 from lib import needs_serial
-
-version = 'pre-alpha'
 
 OPEN = 1
 CLOSED = 0
@@ -139,7 +143,7 @@ class USB24mx():
     def reconnect(self):
         ''' Attempts reconnection. Returns true if successful, False otherwise.
 
-        Use if the connection was lost (which happens often with the EasyDAQ.
+        Use if the connection was lost (which happens often with the EasyDAQ).
         
         '''
 
@@ -151,7 +155,7 @@ class USB24mx():
         try:
             self.connect()
         except SerialException, e:
-            print logging.error(e) # TODO to log
+            print logging.error(e)
             print logging.debug("Reconnection failed")
             return False
 
@@ -165,12 +169,14 @@ class USB24mx():
         if self.daq is not None:
             self.daq.close()
 
+    @needs_serial
     def set_all_output(self):
         """ Set all the relays to outputs. """
 
         for port in self.ports:
             self.set_port_directions(port, "00000000")
 
+    @needs_serial
     def set_all_input(self):
         """ Set all the relays to inputs. """
 
@@ -283,18 +289,22 @@ class USB24mx():
 
         lookup = {'B': 'A', 'C': 'D', 'D': 'G'}
 
+        # TODO remove info logs
+        logging.info("Reading state of port %s", port)
+
         time.sleep(0.01) # sleeping 10 ms prevents lost bytes
         # Flush IO; otherwise we could be sending or reading an errant byte
-        self.daq.flushInput()
-        self.daq.flushOutput()
+        self.daq.flushInput(); logging.info("Flushed I")
+        self.daq.flushOutput(); logging.info("Flushed O")
 
         # Request state of channels on that port and read response
-        self.daq.write(lookup[port] + "A")
-        answer = self.daq.read(1)
+        self.daq.write(lookup[port] + "Z"); logging.info("Requested state")
+        time.sleep(0.01) # sleeping 10 ms prevents lost bytes #TODO test
+        answer = self.daq.read(1); logging.info("State read")
 
-        # TODO delete all withs
         if len(answer) == 0: # then it timed out. Raise an I/O error
-            raise OSError(errno.EIO)
+            logging.debug("Serial Timeout.")
+            raise OSError(errno.EIO, "Serial read timeout.")
 
         return "%08d" % int(bin(ord(answer))[2:])
 
@@ -347,7 +357,9 @@ if __name__ == '__main__':
     import time
     from optparse import OptionParser
 
-    p = OptionParser(version=version)
+    from muigi import __version__
+
+    p = OptionParser(version=__version__)
     p.add_option('-b', '--baudrate', action="store", type="string", 
             dest="baudrate", default=9600, help="Baudrate for communication")
     opts, args = p.parse_args()

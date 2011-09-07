@@ -12,3 +12,5 @@ The package currently contains two modules:
 * muigi.hardware - connect and control microcontrollers or DAQs
 * muigi.web - web interface to remote control the devices.
 """
+
+__version__ = '0.1.0'

@@ -55,14 +55,17 @@ function leavePage()
 }
 
 function submitForm() {
-    $.post('/_set_states', // TODO make this async.
-            $('#control_form').serialize(),
-            function(data) {
+    $.ajax({
+            method: 'post',
+            url: '/_set_states',
+            datatype: 'json',
+            data: $('#control_form').serialize(),
+            success: function(data) {
                 $('div#controls').html(data.html_form);
                 // Fade in the response box, for effect:
                 $('#response').hide().fadeIn(1000);
-            }),
-            'json'
+            }
+        });
 }
 // Submit form, and re-render it upon success
 $(function() {

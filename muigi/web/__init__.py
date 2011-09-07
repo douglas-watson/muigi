@@ -29,6 +29,23 @@
 #
 #################################################
 
+'''
+The muigi.web package
+=====================
+
+This provides a web interface to the Tamagotchip game. Run with the cherrypy
+'production' server. Only one person can play the game, the other users
+browsing the page are put in a queue. After a fixed amount of time, the current
+player is kicked to the end of the queue, and the next user in line is put in
+control.
+
+It hasn't yet been coded in an application-agnostic way, so the code has to be
+rewritten for a new application. Most of the code can stay the same, what has
+to be changed in the controls form, and of course which application is
+imported.
+
+'''
+
 import time
 
 from flask import Flask, render_template, request, flash, jsonify, session, \
@@ -195,7 +212,7 @@ def set_states():
 
 @app.route('/_player_heartbeat')
 def player_update():
-    ''' Update 'last seen' for a player. '''
+    ''' Update 'last seen' for a player. Reset to spectator is time is up.'''
 
     id = get_user_id()
     heartbeat(id)
