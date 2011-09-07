@@ -113,13 +113,14 @@ def get_waiting_time(id):
 
     '''
 
-    remaining_time = get_playing_time()
+    playing_time = get_playing_time()
     pos = r.zrank('waiting_line', id)
 
-    return (pos - 1) * app.playingtime + remaining_time
+    return (pos - 1) * app.playingtime + playing_time
 
 def get_playing_time():
-    ''' Return remaining game time for the current player '''
+    ''' Return remaining game time for the current player. Returns 0 if the '''
+
 
     return app.playingtime - (time.time() - float(r.get("player_begintime")))
 
@@ -145,8 +146,13 @@ app.purgeinterval = 3   # seconds after which the waiting line is purged
 #   user is removed from the list
 # last_seen - an ordered list, with user id as value and time of last heartbeat
 #   as score
+# player_begintime - time at wich the current player got the controls.
 
 r = Redis('localhost')
+# Initialize unexisting numbers, to avoid casting errors further
+# on (note, this will only be called the very first time the app is launched):
+if r.get("player_begintime") is None: 
+    r.set("player_begintime", 0)
 
 # Every x seconds, delete inactive users from the waiting line.
 app.scheduler = ThreadedScheduler()
