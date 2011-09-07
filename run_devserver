@@ -12,7 +12,9 @@
 #################################################
 
 import sys
-import optparse
+from optparse import OptionParser
+from muigi.web import app
+from muigi import __version__
 
 """
 run_devserver.py
@@ -22,7 +24,22 @@ Starts the Flask development server in debug mode.
 For development ONLY. For production, use the CherryPy server.
 """
 
-from muigi.web import app
-app.scheduler.start()
-app.run(debug=True, host='0.0.0.0')
-app.scheduler.stop()
+if __name__ == '__main__':
+
+    HOST = '0.0.0.0'
+    PORT = 5000
+
+    parser = OptionParser(version=__version__)
+    parser.add_option('-p', '--port', action="store", type="string", 
+            dest="port", help="Port number for server to listen on")
+    parser.add_option('-H', '--host', action="store", type="int", 
+            dest="host", help="Host name to bind port to")
+
+    (options, args) = parser.parse_args()
+    
+    if options.port: PORT = int(options.port)
+    if options.host: HOST = options.host
+
+    app.scheduler.start()
+    app.run(debug=True, host=HOST, port=PORT)
+    app.scheduler.stop()
