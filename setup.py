@@ -17,7 +17,7 @@ setup(
               'muigi.applications'],
     scripts=[
         'scripts/muigi-production-server',
-        'muigi/applications/tamagotchip_server.py',
+        'scripts/tamagotchip-rpc-server',
     ],
     data_files=[
         ('/etc/init.d/', ['scripts/rpyc-registry', 'scripts/muigi-web',

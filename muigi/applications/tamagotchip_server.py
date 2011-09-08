@@ -40,12 +40,6 @@ usage = """
     service "TAMAGOTCHIP" through the name server, allowing a connection to
     be established with the rpyc.connect_by_service() function.
 
-
-Configuration:
-
-    Change the port this server binds to in the tamagotchip_config.py module.
-    Other settings are inherited from the driver.
-
 """
 
 import sys

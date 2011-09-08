@@ -1,0 +1,40 @@
+#!/usr/bin/env python
+# -*- coding: UTF8 -*-
+#
+#   run-tamagotchip-server.py - Start the RPyC Service for Tamagotchip.
+#
+#   AUTHOR: Douglas Watson <douglas@watsons.ch>
+#
+#   DATE: started on 8th September 2011
+#
+#   LICENSE: GNU GPL v3.0
+#
+#################################################
+usage = """
+
+    run-tamagotchip-server.py [-p PORT]
+
+    Start an RPC server, providing control over the tamagotchip game. If the
+    RPyC name server is running, it will advertise the service "TAMAGOTCHIP"
+    through the name server, allowing a connection to be established with the
+    rpyc.connect_by_service() function.
+"""
+
+if __name__ == '__main__':
+    from optparse import OptionParser
+    from rpyc.utils.server import ThreadedServer
+    from muigi.applications.tamagotchip_server import TamagotchipService
+    from muigi.applications.tamagotchip_settings import PORT
+    from muigi import __version__
+
+    # Parse options
+    parser = OptionParser(version=__version__, usage=usage)
+    parser.add_option('-p', '--port', action="store", type="string", 
+            dest="PORT", help="Port number for server to listen on")
+    (options, args) = parser.parse_args()
+
+    if options.PORT: PORT = options.PORT
+
+    t = ThreadedServer(TamagotchipService, port=PORT)
+    t.start()
+

@@ -21,7 +21,7 @@
 PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/sbin:/usr/local/bin
 DESC="Tamagotchip RPC server"
 NAME=tamagotchip-server
-DAEMON=`which tamagotchip_server.py`
+DAEMON=`which tamagotchip-rpc-server`
 # DAEMON=/usr/sbin/$NAME
 # DAEMON_ARGS="--options args"
 PIDFILE=/var/run/$NAME.pid
