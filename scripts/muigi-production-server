@@ -18,7 +18,7 @@
 from cherrypy import wsgiserver
 from muigi.web import app
 
-PORT=8000
+PORT=8080
 HOST='0.0.0.0'
 
 d = wsgiserver.WSGIPathInfoDispatcher({'/': app})
