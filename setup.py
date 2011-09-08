@@ -17,8 +17,7 @@ setup(
               'muigi.applications'],
     scripts=['scripts/muigi-production-server'],
     data_files=[
-        ('/etc/init.d/', 'scripts/rpyc-registry'),
-        ('/etc/init.d/', 'scripts/muigi-web'),
+        ('/etc/init.d/', ['scripts/rpyc-registry', 'scripts/muigi-web']),
     ],
     include_package_data=True,
     zip_safe=False,
