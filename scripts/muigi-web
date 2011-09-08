@@ -20,7 +20,7 @@
 PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/sbin:/usr/local/bin
 DESC="Muigi Web microfluidics control interface."
 NAME=muigi-web
-DAEMON=muigi-production-server
+DAEMON=`which muigi-production-server`
 # DAEMON=/usr/sbin/$NAME
 # DAEMON_ARGS="--options args"
 PIDFILE=/var/run/$NAME.pid

@@ -20,7 +20,7 @@
 PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/sbin/:/usr/local/bin
 DESC="RPyC Registry Server"
 NAME=rpyc-registry
-DAEMON=rpyc_registry.py
+DAEMON=`which rpyc_registry.py`
 # DAEMON=/usr/sbin/$NAME
 # DAEMON_ARGS="--options args"
 PIDFILE=/var/run/$NAME.pid
