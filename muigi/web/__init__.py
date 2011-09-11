@@ -58,6 +58,7 @@ from redis import Redis
 from kronos import ThreadedScheduler, method
 
 from flask_secrets import get_secret_key
+from twitter_interface import random_tweet
 import muigi.applications.tamagotchip_client as tamagotchip
 
 ##############################
@@ -147,6 +148,9 @@ app.usertimeout = 10    # seconds after which a user is kicked out
 app.playingtime = 60    # seconds of playing time per session
 app.purgeinterval = 3   # seconds after which the waiting line is purged
 
+# Constants used for twitter interface
+app.tweetinterval = 3 * 60   # minutes between tweets (for "feed me" tweets)
+
 # Redis database stores the following data:
 # 
 # usercount - an integer, incremented each time a user logs in. Current value
@@ -167,6 +171,10 @@ if r.get("player_begintime") is None:
 app.scheduler = ThreadedScheduler()
 app.scheduler.add_interval_task(remove_inactive, 'remove_inactive',
                                 app.purgeinterval, app.purgeinterval,
+                                method.threaded, None, None)
+# Every x minutes, tell twitter I'm hungry
+app.scheduler.add_interval_task(random_tweet, 'random_tweet',
+                                0, app.tweetinterval * 60,
                                 method.threaded, None, None)
 
 
