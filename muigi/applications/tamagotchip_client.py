@@ -95,7 +95,6 @@ def set_states(states):
         return SUCCESS, msg
 
 if __name__ == '__main__':
-    # Hey, I have added a useless comment.
     from optparse import OptionParser
     from random import choice
     random_states = lambda: [choice(['0', '1']) for i in range(12)]
