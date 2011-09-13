@@ -25,17 +25,37 @@
         {% block main %}
 
         <div id="videoplayer">
-            <object classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000" width="480"
-            height="296" id="utv399646"><param name="flashvars"
-            value="autoplay=false&amp;brand=embed&amp;cid=8774084&amp;v3=1"/><param
-            name="allowfullscreen" value="true"/><param name="allowscriptaccess"
-            value="always"/><param name="movie"
-            value="http://www.ustream.tv/flash/viewer.swf"/><embed
-            flashvars="autoplay=true&amp;brand=embed&amp;cid=8774084&amp;v3=1"
-            width="460" height="370" allowfullscreen="true" allowscriptaccess="always"
-            id="utv399646" name="utv_n_17963"
-            src="http://www.ustream.tv/flash/viewer.swf"
-            type="application/x-shockwave-flash" /></object>
+
+			<object id="video" classid="clsid:D27CDB6E-AE6D-11cf-96B8-444553540000" 
+				type="application/x-shockwave-flash" width="480" height="360" 
+				codebase="http://www.macromedia.com/go/getflashplayer">
+
+				<param name="movie" value="http://ditwww.epfl.ch/EPFLTV/Player_FLV/template_maxi/player_flv_maxi.swf">
+
+				<param name="FlashVars" value="netconnection=rtmp://videoserv2.epfl.ch/live/&flv=livepf2&config=http%3A//ditwww.epfl.ch/EPFLTV/Player_FLV/flv_config.txt">
+				<param name="menu" value="false" />
+				<param name="allowScriptAccess" value="sameDomain" />
+				<param name="quality" value="high" />
+				<param name="allowFullScreen" value="true" />
+				<param name="bgcolor" value="#ff0000" />
+				<param name="wmode" value="opaque" />
+
+				<embed name="video" ID="video" width="480" height="360"
+				src="http://ditwww.epfl.ch/EPFLTV/Player_FLV/template_maxi/player_flv_maxi.swf"
+				flashvars="netconnection=rtmp://videoserv2.epfl.ch/live/&flv=microscope&config=http%3A//ditwww.epfl.ch/EPFLTV/Player_FLV/flv_config.txt"
+				type="application/x-shockwave-flash" 
+				pluginspage="http://www.macromedia.com/go/getflashplayer" menu="false" 
+				quality="high" align="middle" allowScriptAccess="sameDomain"
+			   	allowFullScreen="true" alt="video">
+
+				</embed>
+				<noembed>
+				<a href="http://www.macromedia.com/go/getflashplayer">
+					Cliquer ici pour installer le lecteur</a>
+				</noembed>
+
+			</object> 
+
         </div>
 
         <div id="controls">
