@@ -31,7 +31,7 @@ setup(
                       'pyserial',
                       'RPyC',
                       'redis',
-                      'twitter',
+                      'python-twitter',
                      ],
     test_suite='nose.collector',
     test_requires=['Nose'],
