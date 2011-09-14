@@ -145,7 +145,7 @@ app.secret_key = get_secret_key()
 
 # Constants used for the queue
 app.usertimeout = 10    # seconds after which a user is kicked out
-app.playingtime = 60    # seconds of playing time per session
+app.playingtime = 10    # seconds of playing time per session
 app.purgeinterval = 3   # seconds after which the waiting line is purged
 
 # Constants used for twitter interface
@@ -216,6 +216,13 @@ def set_states():
     html_form = render_template("_control_form.html", form=form)
 
     return jsonify(html_form=html_form)
+
+@app.route('/_waiting_template', methods=['GET'])
+def render_waiting_template():
+    ''' Returns the rendered HTML for just the waiting line, without the rest
+    of the template. '''
+    
+    return render_template("_waiting_line.html")
 
 @app.route('/_player_heartbeat')
 def player_update():

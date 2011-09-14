@@ -1,6 +1,19 @@
 // TODO: implement timeouts consistant with the server timeout, and return an
 // error message in consequence (i.e, after 10 seconds of no server response,
 // say 'appears you've lost your connection to the server. Sucks for you.'
+function renderWaitingTemplate() {
+    /* Used to make sure the player is still online */
+    $.ajax({
+            type: 'GET',
+            url: '/_waiting_template',
+            dataType: 'html',
+            async: false,
+            success: function(data) {
+                $("#controls").html(data)
+            }
+    });
+}
+
 function playerHeartbeat() {
     /* Used to make sure the player is still online */
     $.ajax({
@@ -14,7 +27,8 @@ function playerHeartbeat() {
                 } else if ( data.status == 'spectator' ) {
                     // player has been deleted from queue. Redirect to
                     // /spectator to start all over again.
-                    window.location = "/";
+                    renderWaitingTemplate();
+                    spectatorHeartbeat();
                 }
             }
     });
@@ -30,7 +44,6 @@ function spectatorHeartbeat()
             url: '/_spectator_heartbeat',
             dataType: 'json',
             success: function(data) { 
-                console.log(data.status);
                 if ( data.status == "spectator" ) {
                     // Update status information
                     $('#status').html("Please wait for your turn.");
