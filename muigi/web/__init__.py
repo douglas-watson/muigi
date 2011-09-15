@@ -145,7 +145,7 @@ app.secret_key = get_secret_key()
 
 # Constants used for the queue
 app.usertimeout = 10    # seconds after which a user is kicked out
-app.playingtime = 10    # seconds of playing time per session
+app.playingtime = 60    # seconds of playing time per session
 app.purgeinterval = 3   # seconds after which the waiting line is purged
 
 # Constants used for twitter interface
