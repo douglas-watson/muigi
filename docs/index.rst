@@ -22,8 +22,6 @@ Contents:
    setup
    organisation
 
-.. automodule:: muigi
-
 Indices and tables
 ------------------
 

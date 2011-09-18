@@ -26,7 +26,7 @@ Installation
 
 First, install the dependencies:
 
-	sudo apt-get install python-distutils redis-server
+	sudo apt-get install python-setuptools redis-server
 
 Then run the setup script to install Muigi (don't do this for development though):
 

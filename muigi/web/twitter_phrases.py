@@ -7,4 +7,5 @@ phrases = [
     'Watch me explore my chip home! And feed me too.', 
     'Show some love - shove some chow.', 
     'No longer in the dauer stage. I need food!',
+    'My E. Coli is running low. Care to top up?',
 ]
