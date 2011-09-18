@@ -29,7 +29,9 @@
 #
 #################################################
 
-""" The easyDAQ library
+""" 
+The EasyDAQ driver
+==================
 
 Provides an API to control the EasyDAQ USB24Mx 24-relay USB card.
 The card has three 'ports' (B, C, and D), each controlling eight relays, making
@@ -37,17 +39,17 @@ a total of twenty-four. Relays 1 to 8 are on port A, relays 9 to 16 on port B,
 relays 17 to 24 on port C.
 
 To control the DAQ, create an instance of the Controller class, then establish
-a connection, and start sending commands:
+a connection, and start sending commands::
 
->> from easydaq24 import Controller
->> daq = Controller()
->> daq.set_state(12, 1) # activates channel 12
->> time.sleep(10)
->> daq.set_states([1] * 12 + [0] * 12) # activate first 12 channels.
->> daq.disconnect()
+    >> from easydaq24 import Controller
+    >> daq = Controller()
+    >> daq.set_state(12, 1) # activates channel 12
+    >> time.sleep(10)
+    >> daq.set_states([1] * 12 + [0] * 12) # activate first 12 channels.
+    >> daq.disconnect()
 
 Please note that the terminology adapted (in terms of ports, channels, and
-directions for example), are those used by EasyDAQ in their datasheet.
+directions for example), is that used by EasyDAQ in their datasheet.
 
 """
 
@@ -74,20 +76,17 @@ CLOSED = 0
 class USB24mx():
 
     '''
-    A Controller for the EasyDAQ USB24mx relay card.
+    A ``Controller`` for the EasyDAQ USB24mx relay card.
 
-    Parameters:
-    ----------
-
-    device - the device file (on UNIX). Typically /dev/ttyUSB* or similar.
-        Default loaded from easydaq_settings.py file
-    baudrate - Baudrate for the serial connection. Default 9600.
-    timeout - Timeout in seconds for reading from serial. Default 1 s.
-    autoconnect - Whether to connect to device upon initialisation of the class.
+    :arg device: the device file (on UNIX). Typically /dev/ttyUSB* or similar.
+            Default loaded from easydaq_settings.py file
+    :arg baudrate: Baudrate for the serial connection. Default 9600.
+    :arg timeout: Timeout in seconds for reading from serial. Default 1 s.
+    :arg autoconnect: Whether to connect to device upon initialisation of the class.
 
 
     Non-standard methods:
-    --------------------
+    ---------------------
     (check their docstrings for usage)
     
     set_all_output - Set all the relays to outputs.

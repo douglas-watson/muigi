@@ -31,8 +31,8 @@
 #################################################
 
 """
-
-    lbnc_client.py
+LBNC Client
+===========
 
 A debugging script for the LBNC driver. When run alone, this script connects to
 the LBNC driver and randomly sets the states of port A and B to random.

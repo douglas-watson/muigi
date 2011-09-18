@@ -5,13 +5,13 @@
 The Muigi hardware sub-package
 ==============================
 
-Communicate with microfluidics hardware via serial connections.
+Communicate with microfluidics hardware via serial.
 
 The modules here are drivers for different controllers for microfluidics. Each
 driver implements a set of hardware-specific, low-level functions (check the
 individual docs for those), as well as a set of standard functions. If the
 class representing the microcontroller is importer as Controller, the standard
-methods are:
+methods are::
 
     from your_driver import YourController as Controller
 
@@ -22,7 +22,7 @@ methods are:
     c.set_state(N, state)           # set state of valve N (state is 1 or 0)
 
 This allows code to be ported to a different hardware setup just by changing
-the import line:
+the import line::
 
     # swap this:
     from old_driver import OldHardware as Controller

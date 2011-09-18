@@ -30,6 +30,21 @@
 #
 #################################################
 
+"""
+LBNC Driver
+===========
+
+A driver for LBNC's home built microcontroller. This driver was written as an
+early test piece, and does not fulfill the 'standard' set by the EasyDAQ
+driver. It does not provide a simple library, intended to be re-used by other
+software, but is instead a standalone RPyC server.
+
+The newer approach is the have the driver only look after serial communication, and only use RPC if stricly necessary, for example in the case where the web
+server should be able to run on a different computer than the hardware
+computer.
+
+"""
+
 usage = """
 
     lbnc_driver.py [-p PORT] [-d DEVICE]

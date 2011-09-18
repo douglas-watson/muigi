@@ -21,6 +21,7 @@ Contents:
    intro
    setup
    organisation
+   hardware
 
 Indices and tables
 ------------------
