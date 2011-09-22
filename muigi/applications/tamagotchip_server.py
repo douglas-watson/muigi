@@ -95,6 +95,31 @@ class TamagotchipService(rpyc.Service):
         else:
             return "Valves set to %s" % str(states)
 
+    def exposed_set_state(self, valve, state):
+        ''' Set the states of the 12 available valves 
+        
+        :param integer valve: the number of the valve, between 1 and 12
+        :param state: The state to set the valve to. Open is 1, closed is 0.
+        :raises ValueError: if `state` is neither 1 nor 0, or valve is not in
+        the range 1 to 12.
+            
+        '''
+
+        states = list(states)
+
+        if states not in [1, 0]:
+            raise ValueError("'state' must be either 1 or 0")
+
+        if valve not in range(1, 13):
+            raise ValueError("'valve' must be in the range 1 to 12")
+
+        try:
+            self.c.set_state(valve, state) # close the last 12 valves
+        except Exception, e:
+            raise e # TODO not too sure what I'm catching yet.
+        else:
+            return "Valves set to %s" % str(states)
+
 
 if __name__ == '__main__':
     from optparse import OptionParser

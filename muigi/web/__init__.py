@@ -239,7 +239,10 @@ def player_update():
         status = 'spectator'
         quit()
 
-    return jsonify(status=status, remaining_time=int(remaining_time))
+    state_msg = r.get('state_msg')
+
+    return jsonify(status=status, remaining_time=int(remaining_time),
+                  state_msg=state_msg)
 
 @app.route('/_spectator_heartbeat')
 def spectator_update():
@@ -262,6 +265,9 @@ def spectator_update():
         r.set("player_begintime", time.time())
     else:
         data['status'] = "spectator"
+
+    # Add hardware status message
+    data['state_msg'] = r.get("state_msg")
 
     return jsonify(**data)
 

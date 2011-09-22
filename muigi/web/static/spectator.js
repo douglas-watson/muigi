@@ -2,7 +2,6 @@
 // error message in consequence (i.e, after 10 seconds of no server response,
 // say 'appears you've lost your connection to the server. Sucks for you.'
 function renderWaitingTemplate() {
-    /* Used to make sure the player is still online */
     $.ajax({
             type: 'GET',
             url: '/_waiting_template',
@@ -22,11 +21,14 @@ function playerHeartbeat() {
             dataType: 'json',
             success: function(data) {
                 if ( data.status == 'player' ) {
+                    // Update status
                     $("#time").html(data.remaining_time + " s");
+                    $("#statemsg").html(data.state_msg);
+                    // Schedule a new heartbeat
                     setTimeout(playerHeartbeat, 500);
                 } else if ( data.status == 'spectator' ) {
-                    // player has been deleted from queue. Redirect to
-                    // /spectator to start all over again.
+                    // player has been deleted from queue. Revert to spectactor
+                    // status
                     renderWaitingTemplate();
                     spectatorHeartbeat();
                 }
@@ -47,8 +49,9 @@ function spectatorHeartbeat()
                 if ( data.status == "spectator" ) {
                     // Update status information
                     $('#status').html("Please wait for your turn.");
-                    $("#position").html(data.position);
+                    $('#position').html(data.position);
                     $('#wait').html(data.wait + " s");
+                    $('#statemsg').html("Current status: " + data.state_msg);
                     // And schedule a new poll in a second
                     setTimeout(spectatorHeartbeat, 1000);
                 } else if ( data.status == "player" ) {
