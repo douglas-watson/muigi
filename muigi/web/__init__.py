@@ -154,7 +154,7 @@ app.secret_key = get_secret_key()
 
 # Constants used for the queue
 app.usertimeout = 10    # seconds after which a user is kicked out
-app.playingtime = 9999    # seconds of playing time per session
+app.playingtime = 60    # seconds of playing time per session
 app.purgeinterval = 3   # seconds after which the waiting line is purged
 app.time_to_standby = 60 # seconds after which all valves are closed if idle
 
