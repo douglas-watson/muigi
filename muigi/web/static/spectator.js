@@ -89,5 +89,30 @@ $(function() {
 	return false;
 });
 
+// FOR GRADIENT MIXING ONLY: bind buttons to respective functions.
+$(function() {
+    $('#flowred').live('click', function() {
+                $.ajax({type: 'POST', url: '/_flow_red'});
+        });
+});
+
+$(function() {
+    $('#flowblue').live('click', function() {
+                $.ajax({type: 'POST', url: '/_flow_blue'});
+        });
+});
+
+$(function() {
+    $('#flowboth').live('click', function() {
+                $.ajax({type: 'POST', url: '/_flow_both'});
+        });
+});
+
+$(function() {
+    $('#stopflow').live('click', function() {
+                $.ajax({type: 'POST', url: '/_stop_flow'});
+        });
+});
+
 $( setTimeout(spectatorHeartbeat, 1000) );
 $(window).unload(leavePage)

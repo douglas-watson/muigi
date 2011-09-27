@@ -1,0 +1,20 @@
+{% from "_formhelpers.html" import render_field %}
+<div id="status">
+    <p>Remaining game time: <span id="time"></span></p>
+</div>
+<form id="control_form" method="post" action=".">
+	<!-- TODO: lookup button types -->
+    <p><input id="flowred" type="button" value="Flow Red"></p>
+    <p><input id="flowblue" type="button" value="Flow Blue"></p>
+    <p><input id="flowboth" type="button" value="Flow Both"></p>
+    <p><input id="stopflow" type="button" value="Stop Flow"></p>
+</form>
+
+<span id="response">
+{% for category, message in get_flashed_messages(with_categories=True) %}
+<p class="{{ category }}">{{ message }}</p>
+{% endfor %}
+</span>
+
+<p id="statemsg">
+</p>

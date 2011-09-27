@@ -135,6 +135,15 @@ def get_playing_time():
 
     return app.playingtime - (time.time() - float(r.get("player_begintime")))
 
+def standby_hardware():
+    """ Closes all valves if no commands have been issued for the last X
+    seconds. Intended to be run every now and then by the scheduler. 
+    
+    Adjust X seconds with the app.time_to_standby variable. """
+
+    if (time.time() - r.get("last_hardware_access")) > app.time_to_standby:
+        tamagotchip.stop_flow()
+
 
 ##############################
 # Setup 
@@ -147,6 +156,7 @@ app.secret_key = get_secret_key()
 app.usertimeout = 10    # seconds after which a user is kicked out
 app.playingtime = 9999    # seconds of playing time per session
 app.purgeinterval = 3   # seconds after which the waiting line is purged
+app.time_to_standby = 60 # seconds after which all valves are closed if idle
 
 # Constants used for twitter interface
 app.tweetinterval = 3 * 60   # minutes between tweets (for "feed me" tweets)
@@ -173,10 +183,20 @@ app.scheduler.add_interval_task(remove_inactive, 'remove_inactive',
                                 app.purgeinterval, app.purgeinterval,
                                 method.threaded, None, None)
 # Every x minutes, tell twitter I'm hungry
-app.scheduler.add_interval_task(random_tweet, 'random_tweet',
-                                0, app.tweetinterval * 60,
+# app.scheduler.add_interval_task(random_tweet, 'random_tweet',
+                                # 0, app.tweetinterval * 60,
+                                # method.threaded, None, None)
+# Every x seconds, check if hardware is idle and put on standby if needed
+app.scheduler.add_interval_task(standby_hardware, 'standby_hardware',
+                                app.time_to_standby, app.time_to_standby / 3,
                                 method.threaded, None, None)
 
+# APPLICATION: 
+# --------------------------
+# really, the only difference here is what template is being served. I'm a bit
+# embarassed at this implementation, but it's quick and works for now
+
+app.control_template = '_gradient_form.html'
 
 ##############################
 # Views
@@ -196,6 +216,8 @@ def spectator():
 
     return render_template("spectator.html")
 
+# NOTE: as a convention, any url starting with an underscore is meant only for
+# AJAX requests.
 @app.route('/_set_states', methods=['POST'])
 def set_states():
     """ AJAX-specific function to set the states """
@@ -213,9 +235,38 @@ def set_states():
         flash("Invalid input.", "error")
     # Render partial template (just the form) and pass it back, including
     # errors and flashed messages (thanks to render_template magic)
-    html_form = render_template("_control_form.html", form=form)
+    html_form = render_template(app.control_template, form=form)
 
     return jsonify(html_form=html_form)
+
+@app.route('/_flow_red', methods=['POST'])
+def flow_red():
+    """ Flow in red ink. Feedback is handled by heartbeats. """
+    app.logger.debug("Flowing red.")
+    tamagotchip.flow_red()
+    return 'OK'
+
+@app.route('/_flow_blue', methods=['POST'])
+def flow_blue():
+    """ Flow in blue ink. Feedback is handled by heartbeats. """
+    app.logger.debug("Flowing blue.")
+    tamagotchip.flow_blue()
+    return 'OK'
+
+
+@app.route('/_flow_both', methods=['POST'])
+def flow_both():
+    """ Flow in both inks. Feedback is handled by heartbeats. """
+    app.logger.debug("Flowing both dyes.")
+    tamagotchip.flow_both()
+    return 'OK'
+
+@app.route('/_stop_flow', methods=['POST'])
+def stop_flow():
+    """ Blocks flow. Feedback is handled by heartbeats. """
+    app.logger.debug("Stopping flow.")
+    tamagotchip.stop_flow()
+    return 'OK'
 
 @app.route('/_waiting_template', methods=['GET'])
 def render_waiting_template():
@@ -261,7 +312,7 @@ def spectator_update():
     if pos == 0:
         data['status'] = "player"
         form = ControlForm(request.form, csrf_enabled=False)
-        data['form']= render_template("_control_form.html", form=form)
+        data['form']= render_template(app.control_template, form=form)
         r.set("player_begintime", time.time())
     else:
         data['status'] = "spectator"

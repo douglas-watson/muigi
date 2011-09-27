@@ -62,6 +62,19 @@ from muigi import __version__
 
 r = Redis('localhost')
 
+def usercommand(func):
+    """ Decorator for the high level commands. 
+
+    Just makes sure Redis knows about the current state of the hardware.
+    """
+
+    def decorated(*args, **kwargs):
+        r.set("last_hardware_access", time.time())
+        return_value = func(*args, **kwargs)
+
+        return return_value
+
+    return decorated
 
 def set_states(states):
     """ Connects to the server and sets the states of all twelve valves to the
@@ -99,29 +112,30 @@ def set_states(states):
         connection.close()
         return SUCCESS, msg
 
-    def flow_red():
-        """ Flow in red ink for 3 secs. (by opening the corresponding valves) """
-        self.set_states([1, 1, 1, 1, 1, 0, 1, 1, 0] + [0] * 3)
-        r.set("state_msg", "Flowing red dye.")
-        time.sleep(3)
-        self.set_states([1, 1, 1, 1, 1, 0, 1, 1, 1] + [0] * 3)
-        r.set("state_msg", "Idle")
+@usercommand
+def flow_red():
+    """ Flow in red ink for 3 secs. (by opening the corresponding valves) """
+    set_states([1, 1, 1, 1, 1, 0, 1, 1, 0] + [0] * 3)
+    r.set("state_msg", "Flowing red dye.")
 
-    def flow_blue():
-        """ Flow in blue ink for 3 secs. (by opening the corresponding valves) """
-        self.set_states([0, 1, 1, 1, 1, 0, 1, 1, 1] + [0] * 3)
-        r.set("state_msg", "Flowing blue dye.")
-        time.sleep(3)
-        self.set_states([1, 1, 1, 1, 1, 0, 1, 1, 1] + [0] * 3)
-        r.set("state_msg", "Idle")
+@usercommand
+def flow_blue():
+    """ Flow in blue ink for 3 secs. (by opening the corresponding valves) """
+    set_states([0, 1, 1, 1, 1, 0, 1, 1, 1] + [0] * 3)
+    r.set("state_msg", "Flowing blue dye.")
 
-    def flow_both():
-        """ Flow both blue and red ink for 3 secs. """
-        self.set_states([0, 1, 1, 1, 1, 0, 1, 1, 0] + [0] * 3)
-        r.set("state_msg", "Flowing both dyes.")
-        time.sleep(3)
-        self.set_states([1, 1, 1, 1, 1, 0, 1, 1, 1] + [0] * 3)
-        r.set("state_msg", "Idle")
+@usercommand
+def flow_both():
+    """ Flow both blue and red ink for 3 secs. """
+    set_states([0, 1, 1, 1, 1, 0, 1, 1, 0] + [0] * 3)
+    r.set("state_msg", "Flowing both dyes.")
+
+@usercommand
+def stop_flow():
+    """ Closes all valves.  """
+    set_states([1, 1, 1, 1, 1, 0, 1, 1, 1] + [0] * 3)
+    r.set("state_msg", "Idle.")
+
 
 
 if __name__ == '__main__':
