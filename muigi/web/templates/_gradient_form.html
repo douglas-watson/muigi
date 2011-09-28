@@ -4,10 +4,21 @@
 </div>
 <form id="control_form" method="post" action=".">
 	<!-- TODO: lookup button types -->
-    <p><input id="flowred" type="button" value="Flow Red"></p>
-    <p><input id="flowblue" type="button" value="Flow Blue"></p>
-    <p><input id="flowboth" type="button" value="Flow Both"></p>
-    <p><input id="stopflow" type="button" value="Stop Flow"></p>
+	<p>
+		<button id="flowred" type="button" width="56px">
+			<img src="/static/flow_red.png" /><br />Flow Red</button>
+		<button id="flowboth" type="button" width="56px">
+			<img src="/static/flow_both.png" /><br />Flow Both</button>
+		<button id="flowblue" type="button" width="56px">
+			<img src="/static/flow_blue.png" /><br />Flow Blue</button>
+		</button>
+	</p>
+	<p>
+		<button id="stopflow" type="button" width="56px">
+			<img src="/static/stop.png" /><br />Stop Flow</button>
+		<!-- <button id="flush" type="button" width="56px">
+			<img src="/static/flush.png" /><br />Flush </button> -->
+	</p>
 </form>
 
 <span id="response">
