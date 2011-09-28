@@ -141,7 +141,8 @@ def standby_hardware():
     
     Adjust X seconds with the app.time_to_standby variable. """
 
-    if (time.time() - r.get("last_hardware_access")) > app.time_to_standby:
+    if (time.time() - float(r.get("last_hardware_access")))  \
+                 > app.time_to_standby:
         tamagotchip.stop_flow()
 
 

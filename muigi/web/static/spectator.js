@@ -50,7 +50,12 @@ function spectatorHeartbeat()
                     // Update status information
                     $('#status').html("Please wait for your turn.");
                     $('#position').html(data.position);
-                    $('#wait').html(data.wait + " s");
+                    if ( data.wait > '60' ) {
+                        $('#wait').html(Math.floor(data.wait / 60) + "'" + 
+                            data.wait % 60 + '"');
+                    } else {
+                        $('#wait').html(data.wait + '"');
+                    }
                     $('#statemsg').html("Current status: " + data.state_msg);
                     // And schedule a new poll in a second
                     setTimeout(spectatorHeartbeat, 1000);
