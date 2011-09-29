@@ -263,7 +263,7 @@ def flow_both():
     return 'OK'
 
 @app.route('/_flush', methods=['POST'])
-def flow_both():
+def flush():
     """ Flush ink. Feedback is handled by heartbeats. """
     app.logger.debug("Flushing.")
     tamagotchip.flush()
