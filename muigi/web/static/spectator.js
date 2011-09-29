@@ -114,6 +114,12 @@ $(function() {
 });
 
 $(function() {
+    $('#flush').live('click', function() {
+                $.ajax({type: 'POST', url: '/_flush'});
+        });
+});
+
+$(function() {
     $('#stopflow').live('click', function() {
                 $.ajax({type: 'POST', url: '/_stop_flow'});
         });

@@ -262,6 +262,13 @@ def flow_both():
     tamagotchip.flow_both()
     return 'OK'
 
+@app.route('/_flush', methods=['POST'])
+def flow_both():
+    """ Flush ink. Feedback is handled by heartbeats. """
+    app.logger.debug("Flushing.")
+    tamagotchip.flush()
+    return 'OK'
+
 @app.route('/_stop_flow', methods=['POST'])
 def stop_flow():
     """ Blocks flow. Feedback is handled by heartbeats. """

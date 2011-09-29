@@ -114,21 +114,27 @@ def set_states(states):
 
 @usercommand
 def flow_red():
-    """ Flow in red ink for 3 secs. (by opening the corresponding valves) """
+    """ Flow in red ink. (by opening the corresponding valves) """
     set_states([1, 1, 1, 1, 1, 0, 1, 1, 0] + [0] * 3)
     r.set("state_msg", "Flowing red dye.")
 
 @usercommand
 def flow_blue():
-    """ Flow in blue ink for 3 secs. (by opening the corresponding valves) """
+    """ Flow in blue ink. (by opening the corresponding valves) """
     set_states([0, 1, 1, 1, 1, 0, 1, 1, 1] + [0] * 3)
     r.set("state_msg", "Flowing blue dye.")
 
 @usercommand
 def flow_both():
-    """ Flow both blue and red ink for 3 secs. """
+    """ Flow both blue and red ink. """
     set_states([0, 1, 1, 1, 1, 0, 1, 1, 0] + [0] * 3)
     r.set("state_msg", "Flowing both dyes.")
+
+@usercommand
+def flush():
+    """ Flush white. """
+    set_states([1, 1, 1, 0, 0, 0, 1, 1, 1] + [0] * 3)
+    r.set("state_msg", "Flushing.")
 
 @usercommand
 def stop_flow():
